@@ -13,7 +13,7 @@ In order to run the R-scripts the following R-packages were used:
 
 ## Data
 The data for visualizing the electrolyte values of the control-group animals used in this manuscript are located in the subfolder `~/Data/Derived`.
-Data for visualizing the results of the legacy study are is the property of Bayer pharmaceuticals AG and are subject to confidentiality. They can be made available upon request.
+Data for visualizing the results of the legacy study are is the property of Bayer pharmaceuticals AG and are subject to confidentiality. They can be made available upon request. User would need to set up a CSV table called `legacy_calcium_study.csv`.
 
 ## This repository composes the following R-scripts:
 ### `00_master.R`
@@ -38,17 +38,13 @@ Applies the Dunnett's test to the legacy study of "02_make_dunnett_test.R"  usin
 The figures and tables in the manuscript can be reproduced using the following R markdown file. The generated figures are saved in inst/manuscript_2022
 
 ## The results are then visualized by the following scripts for the figures used in the manuscript:
-### `04_visualize_electrolytes.R`
-to plot the distributions of the electrolyte values.
-### `05_visualize_scenarios.R`
-to plot the concurrent control animals and show which ones are kept As sentinel animals.
-### `06_visualize_picked_iterations.R`
-to plot the results of a single handpicked iteration of the resampling experiment.
-### `07_visualize_resampling_results.R`
-to plot all results of all iterations of the resampling experiment
+- `04_visualize_electrolytes.R` to plot the distributions of the electrolyte values.
+- `05_visualize_scenarios.R` to plot the concurrent control animals and show which ones are kept As sentinel animals.
+- `06_visualize_picked_iterations.R` to plot the results of a single handpicked iteration of the resampling experiment.
+- `07_visualize_resampling_results.R` to plot all results of all iterations of the resampling experiment.
 
 ## Figures
-The resulting figures are stored in the `~/Results/HTML`-subfolder as HTML files. The images as PNG format can be found under `~/Results/JPEG`.
+The resulting figures are stored in the `~/Results/HTML`-subfolder as HTML files. The images as JPEG format can be found under `~/Results/JPEG`.
 
 ## Author
 Alexander Gurjanov - [Alexander Gurjanov](mailto:alexander.gurjanov@bayer.com)
