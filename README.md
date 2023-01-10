@@ -51,4 +51,4 @@ to plot all results of all iterations of the resampling experiment
 The resulting figures are stored in the `~/Results/HTML`-subfolder as HTML files. The images as PNG format can be found under `~/Results/JPEG`.
 
 ## Author
-Alexander Gurjanov - [Alexander Gurjanov](alexander.gurjanov@bayer.com)
+Alexander Gurjanov - [Alexander Gurjanov](mailto:alexander.gurjanov@bayer.com)
