@@ -12,7 +12,7 @@ In order to run the R-scripts the following R-packages were used:
 - [`webshot`](https://CRAN.R-project.org/package=webshot) 
 
 ## Data
-The data for visualizing the electrolyte values of the control-group animals used in this manuscript are located in the subfolder `~/Data/Derived`.
+The data for visualizing the electrolyte values of the control-group animals used in this manuscript are located in the subfolder `~/Data/Derived/electrolyte_parameters_4wk_rat.csv`.
 This data is composed from 32 rat studies stored in the SEND format. The anesthetics used for sedation of these animals during blood withdrawal is stored in the subfolder `~/Data/Original/narcosis.csv`.
 Data for visualizing the results of the legacy study are is the property of Bayer pharmaceuticals AG and are subject to confidentiality. They can be made available upon request. User would need to set up a CSV table called `legacy_calcium_study.csv`.
 
