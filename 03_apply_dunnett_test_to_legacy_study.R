@@ -1,4 +1,4 @@
-#K6_apply_resampling_method.R
+#03_apply_dunnett_test_to_legacy_study.R
 
 #*This program is the sweet output of the previous preparation-steps.
 #*The functions of the previous R-script are executed here with respect
@@ -55,58 +55,8 @@ t.test(
   var.equal = FALSE
   )
 #*******************************************************************************
-#Bayer high Ca study: T103901-4####
-
-# #First, get the data from the study
-# #Extract the study whith the reported increase of potassium in the high dose group
-# #establish connection to athena AWS
-# source(paste0(rootpath, "/old_programs/01_establish_frog_access.R"))
-# 
-# #Get calcium values from the Bayer's legacy study (baycal), from AWS server
-# baycal <- dbGetQuery(con, paste0("
-# SELECT
-#   lb.study_id AS STUDYID,
-#   lb.test_definition_name_short AS LBTESTCD,
-#   lb.test_definition_category AS LBCAT,
-#   lb.test_result_numerical_value AS LBORRES,
-#   lb.test_result_unit AS LBORRESU,
-#   lb.test_definition_specimen AS LBSPEC,
-#   lb.test_definition_relative_study_day AS LBDY,
-#   lb.trial_set_description,
-#   lb.dosage_group_dosage_value,
-#   lb.animal_sex AS SEX,
-#   lb.study_id || '-' || lb.animal_id as USUBJID
-# FROM
-#   frog_sink_catalogdb.lab_test_results lb
-# WHERE
-#   lb.study_id = 'T103901-4'
-#   AND lb.test_definition_relative_study_day BETWEEN 1 AND 35
-#   AND lb.test_definition_name_short = 'CA'
-#   AND lb.test_definition_category = 'CLINICAL CHEMISTRY'
-#   AND lb.test_definition_specimen = 'SERUM'
-# ;"))
-# 
 #Remove case-study from the set which you use for resampling
 sample_population <- studydata_to_test %>% filter(STUDYID != "T103901-4")
-# 
-# #Get initial body weiht of the selected study
-# baycal_initbw <- dbGetQuery(con, paste0("
-# SELECT
-#  study_id || '-' || animal_id as USUBJID,
-#  body_weight AS INITBW,
-#  body_weight_day AS BWDY
-# FROM
-#   frog_sink_catalogdb.body_weights bw
-# WHERE
-#   bw.study_id = 'T103901-4'
-# AND
-#   bw.body_weight_day = 1
-# ;"))
-# 
-# #Merge the data from the LB-domain and the BW domain (as initial body weight)
-# baycal_with_initbw <- merge(baycal, baycal_initbw, by = "USUBJID")
-
-# fwrite(baycal_with_initbw, paste0(der, "/legacy_calcium_study.csv"))
 
 baycal_with_initbw <- fread(paste0(der, "/legacy_calcium_study.csv"))
 
