@@ -1,0 +1,25 @@
+# Check the quality of your code
+
+name: Code Quality
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+jobs:
+  codeclimate:
+    name: CodeClimate Scan
+    runs-on: ubuntu-latest
+    env:
+      CODECLIMATE_VERSION: codeclimate/codeclimate:0.85.24
+    steps:
+      - uses: actions/checkout@v2
+      - run: docker pull --quiet $CODECLIMATE_VERSION
+      - run: |
+         docker run \
+          --rm \
+          --env CODECLIMATE_CODE="$PWD" \
+          --volume "$PWD":/code \
+          --volume /var/run/docker.sock:/var/run/docker.sock \
+          --volume /tmp/cc:/tmp/cc \
+          $CODECLIMATE_VERSION analyze
