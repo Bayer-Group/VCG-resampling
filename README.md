@@ -1,4 +1,4 @@
-# ViCoG-resampling
+# VCG-resampling
 This code visualizes the electrolyte-values of serum control-group animals followed by a resampling experiment.
 As an input, the electrolyte values of the ViCoG data set are read as CSV and visualized
 A SEND-formatted legacy study needs to be placed into the Data/Derived-subfolder in order to excecute the resampling experiment.
@@ -29,9 +29,9 @@ This is done by the following procedure:
 3) Repeats the previous step _n_ times where _n_ is a user-specified number
 4) Summarizes results in a list giving the percentage of how often the original result was reproduced (per dose group) as well as the mean values of each sample of the VCGs.
   These results are further split into following categories:
-    - Consistent results (ViCoGs led to a result consistent with the results of the original study).
-    - Inconsistently significant results (ViCoGs led to a Dunnett-significant result while there was non in the original result).
-    - Inconsistently non-significant results (ViCoGs led to no signficant result while there was one in the original result).
+    - Consistent results (VCGs led to a result consistent with the results of the original study).
+    - Inconsistently significant results (VCGs led to a Dunnett-significant result while there was non in the original result).
+    - Inconsistently non-significant results (VCGs led to no signficant result while there was one in the original result).
     - Inverted significant result (ViCoGs led to a significant result and in the original study was one too, but the direction of the significance is inverted).
 
 ### `03_apply_dunnett_test_to_legacy_study.R`
