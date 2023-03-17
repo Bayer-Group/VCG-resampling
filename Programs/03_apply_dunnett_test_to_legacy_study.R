@@ -1,4 +1,4 @@
-#03_apply_dunnett_test_to_legacy_study.R
+#K6_apply_resampling_method.R
 
 #*This program is the sweet output of the previous preparation-steps.
 #*The functions of the previous R-script are executed here with respect
@@ -18,8 +18,9 @@ require(tidyverse)
 #Get the function which calculates Dunnett-test for each resampled value
 source(paste0(rootpath, "/Programs/02_make_dunnett_test.R"))
 
-#read electrolyte values from ViCoG table from data/Derived folder
-studydata_to_test <- fread(paste0(der, "/electrolyte_parameters_4wk_rat.csv")) %>%
+#read electrolyte values from VCG table from data/Derived folder
+studydata_to_test <- fread(paste0(der, "/all_lb_parameters_4wk_rat.csv")) %>%
+  rename(ANESTHETICS = anesthetics) %>%
   #summarize "CO2/air" and "CO2/O2" to "CO2"
   mutate(ANESTHETICS = case_when(
     ANESTHETICS == "CO2/air" ~ "CO2",
@@ -32,13 +33,13 @@ studydata_to_test <- fread(paste0(der, "/electrolyte_parameters_4wk_rat.csv")) %
 #Pull mean and sd of the respective samples (change the parameters if needed)
 test_set <- studydata_to_test %>%
   filter(LBTESTCD == "CA",
-         START_YEAR < 2017,
-         #anesthetics == "CO2"
+         # START_YEAR < 2017,
+         # ANESTHETICS == "CO2/air"
          ) %>%
   pull(LBORRES)
 #get mean and sd
 paste0("mean: ", test_set %>% mean() %>% signif(3) %>% format(n_small = 2), " mmol/L ± ",
-       test_set %>% sd() %>% signif(2) %>% format(n_small = 2), "mmol/L"      
+       test_set %>% sd() %>% signif(2) %>% format(n_small = 2), " mmol/L"
 )
 #get variance
 paste0("variance: ", test_set %>% var() %>% signif(3) %>% format(n_small = 2))
@@ -55,14 +56,18 @@ t.test(
   var.equal = FALSE
   )
 #*******************************************************************************
+
 #Remove case-study from the set which you use for resampling
-sample_population <- studydata_to_test %>% filter(STUDYID != "T103901-4")
+sample_population <- studydata_to_test %>% filter(SPREFID != "T103901-4")
+
+sample_population %>% filter(LBTESTCD == "CA") %>% pull(SPREFID) %>% n_distinct()
 
 baycal_with_initbw <- fread(paste0(der, "/legacy_calcium_study.csv"))
 
-#Extract potassium serum levels from this study
+#Extract electrolyte serum levels from this study
 baycal_ca_levels <- baycal_with_initbw %>%
-  #rename the dose groups into control group (cg), low dose (ld), mid dose (md) and high dose (hd)
+  #rename the dose groups into control group (control), Dose group 1 (low dose),
+  #Dose group 2 (mid dose), and Dose group 3 (high dose)
   mutate(trial_set_description = case_when(endsWith(trial_set_description, "1S1") ~ "Control",
                                            endsWith(trial_set_description, "1S2") ~ "Control",
                                            endsWith(trial_set_description, "2S1") ~ "Dose group 1",
@@ -75,69 +80,226 @@ baycal_ca_levels <- baycal_with_initbw %>%
 
 #******************************************************************************
 #*Assess resampling performance for an equal number from both subsets in males
-baycal1_both_m_all <- vcg_resampling_dunnett(
+#  baycal1_both_m_all <- vcg_resampling_dunnett(
+#    case_study = baycal_ca_levels,
+#    vcg_population = sample_population,
+#    sex = "M",
+#    iterations = 500,
+#    narcosis_sample = c("isoflurane" ,"CO2"),
+#    electrolyte = c("CA", "K"),
+#    replacement_aim = "all"
+#    )
+#  baycal1_both_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "CA", consistency_flag  == "con")
+# # # baycal1_both_m_all[["res_vs_original"]]
+# # 
+# baycal1_both_m_all_but_two <- vcg_resampling_dunnett(
+#   case_study = baycal_ca_levels,
+#   vcg_population = sample_population,
+#   sex = "M",
+#   iterations = 500,
+#   narcosis_sample = c("isoflurane" ,"CO2"),
+#   electrolyte = c("CA", "K"),
+#   replacement_aim = "all_but_two"
+# )
+# baycal1_both_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "CA", consistency_flag  == "con")
+# 
+# baycal1_both_m_half <- vcg_resampling_dunnett(
+#   case_study = baycal_ca_levels,
+#   vcg_population = sample_population,
+#   sex = "M",
+#   iterations = 500,
+#   narcosis_sample = c("isoflurane" ,"CO2"),
+#   electrolyte = "CA",
+#   replacement_aim = "half"
+# )
+# baycal1_both_m_half[["res_vs_original"]]
+# #******************************************************************************
+# #*Assess resampling performance for isoflurane subset in males
+# baycal1_iso_m_all <- vcg_resampling_dunnett(
+#   case_study = baycal_ca_levels,
+#   vcg_population = sample_population,
+#   sex = "M",
+#   iterations = 500,
+#   narcosis_sample = "isoflurane",
+#   electrolyte = "CA",
+#   replacement_aim = "all"
+# )
+# baycal1_iso_m_all[["res_vs_original"]]
+# 
+# baycal1_iso_m_all_but_two <- vcg_resampling_dunnett(
+#   case_study = baycal_ca_levels,
+#   vcg_population = sample_population,
+#   sex = "M",
+#   iterations = 500,
+#   narcosis_sample = "isoflurane",
+#   electrolyte = "CA",
+#   replacement_aim = "all_but_two"
+# )
+# baycal1_iso_m_all_but_two[["res_vs_original"]]
+# 
+# baycal1_iso_m_half <- vcg_resampling_dunnett(
+#   case_study = baycal_ca_levels,
+#   vcg_population = sample_population,
+#   sex = "M",
+#   iterations = 500,
+#   narcosis_sample = "isoflurane",
+#   electrolyte = "CA",
+#   replacement_aim = "half"
+# )
+# # baycal1_iso_m_half[["res_vs_original"]]
+# baycal1_iso_m_half
+#*******************************************************************************
+#*******************************************************************************
+#*******************************************************************************
+bay_both_m_all <- vcg_resampling_dunnett(
   case_study = baycal_ca_levels,
   vcg_population = sample_population,
   sex = "M",
   iterations = 500,
-  narcosis_sample = c("isoflurane" ,"CO2"),
-  electrolyte = "CA",
+  narcosis_sample = c("isoflurane", "CO2"),
+  electrolyte = c("CA", "K", "SODIUM", "PHOS", "RBC", "BW_D1", "BW_D14", "BW_D28"),
   replacement_aim = "all"
-  )
-baycal1_both_m_all[["res_vs_original"]]
+)
 
-baycal1_both_m_all_but_two <- vcg_resampling_dunnett(
+
+bay_both_m_all_but_two <- vcg_resampling_dunnett(
   case_study = baycal_ca_levels,
   vcg_population = sample_population,
   sex = "M",
   iterations = 500,
-  narcosis_sample = c("isoflurane" ,"CO2"),
-  electrolyte = "CA",
+  narcosis_sample = c("isoflurane", "CO2"),
+  electrolyte = c("CA", "K", "SODIUM", "PHOS", "RBC", "BW_D1", "BW_D14", "BW_D28"),
   replacement_aim = "all_but_two"
 )
-baycal1_both_m_all_but_two[["res_vs_original"]]
 
-baycal1_both_m_half <- vcg_resampling_dunnett(
+bay_both_m_half <- vcg_resampling_dunnett(
   case_study = baycal_ca_levels,
   vcg_population = sample_population,
   sex = "M",
   iterations = 500,
-  narcosis_sample = c("isoflurane" ,"CO2"),
-  electrolyte = "CA",
+  narcosis_sample = c("isoflurane", "CO2"),
+  electrolyte = c("CA", "K", "SODIUM", "PHOS", "RBC", "BW_D1", "BW_D14", "BW_D28"),
   replacement_aim = "half"
 )
-baycal1_both_m_half[["res_vs_original"]]
-#******************************************************************************
-#*Assess resampling performance for isoflurane subset in males
-baycal1_iso_m_all <- vcg_resampling_dunnett(
+
+bay_iso_m_all <- vcg_resampling_dunnett(
   case_study = baycal_ca_levels,
   vcg_population = sample_population,
   sex = "M",
   iterations = 500,
   narcosis_sample = "isoflurane",
-  electrolyte = "CA",
+  electrolyte = c("CA", "K", "SODIUM", "PHOS", "RBC", "BW_D1", "BW_D14", "BW_D28"),
   replacement_aim = "all"
 )
-baycal1_iso_m_all[["res_vs_original"]]
 
-baycal1_iso_m_all_but_two <- vcg_resampling_dunnett(
+bay_iso_m_all_but_two <- vcg_resampling_dunnett(
   case_study = baycal_ca_levels,
   vcg_population = sample_population,
   sex = "M",
   iterations = 500,
   narcosis_sample = "isoflurane",
-  electrolyte = "CA",
+  electrolyte = c("CA", "K", "SODIUM", "PHOS", "RBC", "BW_D1", "BW_D14", "BW_D28"),
   replacement_aim = "all_but_two"
 )
-baycal1_iso_m_all_but_two[["res_vs_original"]]
 
-baycal1_iso_m_half <- vcg_resampling_dunnett(
+bay_iso_m_half <- vcg_resampling_dunnett(
   case_study = baycal_ca_levels,
   vcg_population = sample_population,
   sex = "M",
   iterations = 500,
   narcosis_sample = "isoflurane",
-  electrolyte = "CA",
+  electrolyte = c("CA", "K", "SODIUM", "PHOS", "RBC", "BW_D1", "BW_D14", "BW_D28"),
   replacement_aim = "half"
 )
-baycal1_iso_m_half[["res_vs_original"]]
+
+#*******************************************************************************
+#*observe results
+#Calcium
+bay_both_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "CA", consistency_flag  == "con")
+bay_both_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "CA", consistency_flag  == "con")
+bay_both_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "CA", consistency_flag  == "con")
+bay_iso_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "CA", consistency_flag  == "con")
+bay_iso_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "CA", consistency_flag  == "con")
+bay_iso_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "CA", consistency_flag  == "con")
+
+bay_iso_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "CA")
+baycal_ca_levels %>% filter(LBTESTCD == "CA", SEX == "M", trial_set_description == "Control") %>% summarise(m = mean(LBORRES), s = sd(LBORRES))
+sample_population %>% filter(LBTESTCD == "CA", SEX == "M") %>% summarise(m = mean(LBORRES), s = sd(LBORRES))
+sample_population %>% filter(LBTESTCD == "CA", SEX == "M", ANESTHETICS == "isoflurane") %>% summarise(m = mean(LBORRES), s = sd(LBORRES))
+
+#Potassium
+bay_both_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "K", consistency_flag  == "con")
+bay_both_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "K", consistency_flag  == "con")
+bay_both_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "K", consistency_flag  == "con")
+bay_iso_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "K", consistency_flag  == "con")
+bay_iso_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "K", consistency_flag  == "con")
+bay_iso_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "K", consistency_flag  == "con")
+
+#Sodium
+bay_both_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "SODIUM", consistency_flag  == "con")
+bay_both_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "SODIUM", consistency_flag  == "con")
+bay_both_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "SODIUM", consistency_flag  == "con")
+bay_iso_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "SODIUM", consistency_flag  == "con")
+bay_iso_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "SODIUM", consistency_flag  == "con")
+bay_iso_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "SODIUM", consistency_flag  == "con")
+
+#Phosphate
+bay_both_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "PHOS", consistency_flag  == "con")
+bay_both_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "PHOS", consistency_flag  == "con")
+bay_both_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "PHOS", consistency_flag  == "con")
+bay_iso_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "PHOS", consistency_flag  == "con")
+bay_iso_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "PHOS", consistency_flag  == "con")
+bay_iso_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "PHOS", consistency_flag  == "con")
+
+bay_iso_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "PHOS")
+baycal_ca_levels %>% filter(LBTESTCD == "PHOS", SEX == "M", trial_set_description == "Control") %>% summarise(m = mean(LBORRES), s = sd(LBORRES))
+sample_population %>% filter(LBTESTCD == "PHOS", SEX == "M") %>% summarise(m = mean(LBORRES), s = sd(LBORRES))
+sample_population %>% filter(LBTESTCD == "PHOS", SEX == "M", ANESTHETICS == "isoflurane") %>% summarise(m = mean(LBORRES), s = sd(LBORRES))
+
+#Erythrocytes
+bay_both_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "RBC", consistency_flag  == "con")
+bay_both_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "RBC", consistency_flag  == "con")
+bay_both_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "RBC", consistency_flag  == "con")
+bay_iso_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "RBC", consistency_flag  == "con")
+bay_iso_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "RBC", consistency_flag  == "con")
+bay_iso_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "RBC", consistency_flag  == "con")
+
+#Body weight day 1
+bay_both_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D1", consistency_flag  == "con")
+bay_both_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D1", consistency_flag  == "con")
+bay_both_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D1", consistency_flag  == "con")
+bay_iso_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D1", consistency_flag  == "con")
+bay_iso_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D1", consistency_flag  == "con")
+bay_iso_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D1", consistency_flag  == "con")
+
+#Body weight day 14
+bay_both_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D14", consistency_flag  == "con")
+bay_both_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D14", consistency_flag  == "con")
+bay_both_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D14", consistency_flag  == "con")
+bay_iso_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D14", consistency_flag  == "con")
+bay_iso_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D14", consistency_flag  == "con")
+bay_iso_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D14", consistency_flag  == "con")
+
+#Body weight day 28
+bay_both_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D28", consistency_flag  == "con")
+bay_both_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D28", consistency_flag  == "con")
+bay_both_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D28", consistency_flag  == "con")
+bay_iso_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D28", consistency_flag  == "con")
+bay_iso_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D28", consistency_flag  == "con")
+bay_iso_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D28", consistency_flag  == "con")
+
+bay_iso_m_half[["res_vs_original"]] %>% filter(LBTESTCD == "BW_D28")
+baycal_ca_levels %>% filter(LBTESTCD == "BW_D28", SEX == "M", trial_set_description == "Control") %>% summarise(m = mean(LBORRES), s = sd(LBORRES))
+sample_population %>% filter(LBTESTCD == "BW_D28", SEX == "M") %>% summarise(m = mean(LBORRES), s = sd(LBORRES))
+sample_population %>% filter(LBTESTCD == "BW_D28", SEX == "M", ANESTHETICS == "isoflurane") %>% summarise(m = mean(LBORRES), s = sd(LBORRES))
+
+#*******************************************************************************
+#*******************************************************************************
+#*Write results as CSV and store in Data/Derived folder-------------------------
+#*******************************************************************************
+# fwrite(bay_both_m_all, paste0(der, "/bay_both_m_all.csv"))
+# fwrite(bay_both_m_all_but_two, paste0(der, "/bay_both_m_all_but_two.csv"))
+# fwrite(bay_both_m_half, paste0(der, "/bay_both_m_half.csv"))
+# fwrite(bay_iso_m_all, paste0(der, "/bay_iso_m_all.csv"))
+# fwrite(bay_iso_m_all_but_two, paste0(der, "/bay_iso_m_all_but_two.csv"))
+# fwrite(bay_iso_m_half, paste0(der, "/bay_iso_m_half.csv"))

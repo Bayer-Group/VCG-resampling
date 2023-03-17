@@ -31,7 +31,7 @@ batch_plots <- function(studydata_to_test,
                         electrolyte,
                         whichplot,
                         anesthetic1 = "isoflurane",
-                        anesthetic2 = "CO2/air")
+                        anesthetic2 = "CO2")
   {
   #Combine CO2/O2 and CO2/air into one group.
   #Do this only if "anesthetic1" is isoflurane
@@ -40,9 +40,9 @@ batch_plots <- function(studydata_to_test,
       #before 2017 and to "isoflurance" for studies after 2017
       mutate(
         ANESTHETICS = case_when(
-          ANESTHETICS == "unknown" & START_YEAR < 2017 ~ "CO2/air",
+          ANESTHETICS == "unknown" & START_YEAR < 2017 ~ "CO2",
           ANESTHETICS == "unknown" & START_YEAR >= 2017 ~ "isoflurane",
-          ANESTHETICS == "CO2/O2" ~ "CO2/air",
+          grepl("CO2", ANESTHETICS) ~ "CO2",
           TRUE ~ ANESTHETICS
           )
         )
@@ -57,7 +57,14 @@ batch_plots <- function(studydata_to_test,
     LBTESTCD == electrolyte,
     SEX == sex
   )
-
+  
+  #Calculate the population of values in each year for the attachments in the
+  #box plots
+  population_per_year <- studydata_to_plot %>%
+    group_by(START_YEAR) %>%
+    summarize(pop_per_year = n()) %>%
+    mutate(pop_per_year_str = paste0("<i>n</i> = ", pop_per_year))
+  
   #define words for the axis title
   electrolyte_word <- if(electrolyte == "K"){
     "K<sup>+</sup>"
@@ -134,25 +141,42 @@ batch_plots <- function(studydata_to_test,
     y = ~LBORRES,
     marker = list(color = "#a5a5a5", line = list(color = "#000000", width = 2))
   ) %>%
+    #Add an "A" above the figure to show the panel description
+    add_annotations(
+      text = "<b>A</b>",
+      x = 0.05,
+      y = 1,
+      xref = "paper",
+      yref = "paper",
+      showarrow = F,
+      xanchor = "middle",
+      yanchor = "bottom"
+    )  %>%
     layout(
-      plot_bgcolor="#e5ecf6",
-      font = list(size = 18),
-      # annotations = list(list(x = 0.1 , y = 0.95, text = titlesex, showarrow = F, xref =  "paper", yref = "paper")),
-      #title = paste0(titleelectrolyte, " concentration of ", titlesex, " Wistar-rats"),
-      yaxis = list(title = axistitle,
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff",
-                   ticks = "inside",
-                   tickwidth = 2,
-                   ticklen = 10,
-                   dtick = xticks,
-                   range = c(axisrange_l, axisrange_u)),
-      xaxis = list(title = "Frequency",
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff",
-                   autorange = "reversed"),
+      font = list(family = "times new roman", size = 22),
+      yaxis = list(
+        title = axistitle,
+        showline = T,
+        showgrid = T,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        mirror = T,
+        dtick = xticks,
+        range = c(axisrange_l, axisrange_u)
+        ),
+      xaxis = list(
+        title = "Frequency",
+        showline = T,
+        showgrid = T,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        mirror = T,
+        autorange = "reversed"
+        ),
       showlegend = F
     )
   #*****************************************************************************
@@ -174,24 +198,43 @@ batch_plots <- function(studydata_to_test,
       legendgroup = "anesthetic1",
       showlegend = F#ifelse(sex == "M", T, F)
     ) %>%
+    #Add an "A" above the figure to show the panel description
+    add_annotations(
+      text = "<b>A</b>",
+      x = 0.05,
+      y = 1,
+      xref = "paper",
+      yref = "paper",
+      showarrow = F,
+      xanchor = "middle",
+      yanchor = "bottom"
+    )  %>%
     layout(
-      plot_bgcolor="#e5ecf6",
-      font = list(size = 18),
-      yaxis = list(title = axistitle,#ifelse(sex == "M", "", paste0(axistitle)),
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff",
-                   tickmode = "linear",
-                   ticks = "inside",
-                   tickwidth = 2,
-                   ticklen = 10,
-                   range = c(axisrange_l, axisrange_u),
-                   dtick = xticks),
-      xaxis = list(title = "Frequency",
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff",
-                   autorange = "reversed"),
+      font = list(family = "times new roman", size = 22),
+      yaxis = list(
+        title = axistitle,#ifelse(sex == "M", "", paste0(axistitle)),
+        title = "Frequency",
+        showline = T,
+        showgrid = T,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        mirror = T,
+        range = c(axisrange_l, axisrange_u),
+        dtick = xticks
+                   ),
+      xaxis = list(
+        title = "Frequency",
+        showline = T,
+        showgrid = T,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        mirror = T,
+        autorange = "reversed"
+        ),
       barmode = "overlay"
     )
   #*****************************************************************************  
@@ -213,7 +256,7 @@ batch_plots <- function(studydata_to_test,
     #Add the count of data points
     add_annotations(
       text = ~paste0("<i>n</i><sub>total</sub>: ", studydata_to_plot %>% nrow()),
-      font = list(size = 18),
+      font = list(family = "times new roman", size = 22),
       x = 0.95,
       y = 0.95,
       xref = "paper",
@@ -223,23 +266,54 @@ batch_plots <- function(studydata_to_test,
       align = "right",
       showarrow = F
     ) %>%
+    #Add a "B" above the figure to show the panel description
+    add_annotations(
+      text = "<b>B</b>",
+      x = 0.05,
+      y = 1,
+      xref = "paper",
+      yref = "paper",
+      showarrow = F,
+      xanchor = "middle",
+      yanchor = "bottom"
+    )  %>%
+    #Add the population from each year under each box
+    add_annotations(
+      data = population_per_year,
+      text = ~paste0(pop_per_year_str),
+      font = list(family = "times new roman", size = 16),
+      x = ~START_YEAR,
+      y = 0.01,
+      yref = "paper",
+      xanchor = "middle",
+      yanchor = "bottom",
+      showarrow = F
+    ) %>%
     layout(
-      plot_bgcolor="#e5ecf6",
-      font = list(size = 18),
-      xaxis = list(title = "Year of the study begin",
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff",
-                   tickmode = "linear",
-                   ticks = "inside",
-                   tickwidth = 2,
-                   ticklen = 10),
-      yaxis = list(title = "",
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff",
-                   range = c(axisrange_l, axisrange_u),
-                   dtick = xticks),
+      font = list(family = "times new roman", size = 22),
+      xaxis = list(
+        title = "Year of the study begin",
+        showline = T,
+        showgrid = T,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        mirror = T,
+        tickmode = "linear"
+        ),
+      yaxis = list(
+        title = "",
+        showline = T,
+        showgrid = T,
+        showticklabels = F,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        mirror = T,
+        range = c(axisrange_l, axisrange_u)
+        ),
       showlegend = F
     )
   #*****************************************************************************  
@@ -275,24 +349,6 @@ batch_plots <- function(studydata_to_test,
       legendgroup = "anesthetic1",
       showlegend = ifelse(sex == "M", T, F)
   ) %>%
-    layout(
-      plot_bgcolor="#e5ecf6",
-      font = list(size = 18),
-      xaxis = list(title = "Year of the study begin",
-                   tickmode = "linear",
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff",
-                   ticks = "inside",
-                   tickwidth = 2,
-                   ticklen = 10),
-      yaxis = list(title = "",#paste0(axistitle),
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2,
-                   range = c(axisrange_l, axisrange_u), 
-                   gridcolor = "ffff",
-                   dtick = xticks)
-    ) %>%
     #Add the count of each group
     add_annotations(
       text = ~paste0(
@@ -307,6 +363,56 @@ batch_plots <- function(studydata_to_test,
       yanchor = "top",
       align = "right",
       showarrow = FALSE
+    ) %>%
+    #Add a "B" above the figure to show the panel description
+    add_annotations(
+      text = "<b>B</b>",
+      x = 0.05,
+      y = 1,
+      xref = "paper",
+      yref = "paper",
+      showarrow = F,
+      xanchor = "middle",
+      yanchor = "bottom"
+    )  %>%
+    #Add the population from each year under each box
+    add_annotations(
+      data = population_per_year,
+      text = ~paste0(pop_per_year_str),
+      font = list(family = "times new roman", size = 16),
+      x = ~START_YEAR,
+      y = 0.01,
+      yref = "paper",
+      xanchor = "middle",
+      yanchor = "bottom",
+      showarrow = F
+    ) %>%
+    layout(
+      font = list(family = "times new roman", size = 22),
+      xaxis = list(
+        title = "Year of the study begin",
+        tickmode = "linear",
+        showline = T,
+        showgrid = T,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        mirror = T
+        ),
+      yaxis = list(
+        title = "",#paste0(axistitle),
+        showline = T,
+        showgrid = T,
+        showticklabels = F,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        mirror = T,
+        dtick = xticks,
+        range = c(axisrange_l, axisrange_u)
+        )
     )
   #*****************************************************************************
   #plot electrolyte values with respect to narcosis
@@ -355,23 +461,43 @@ batch_plots <- function(studydata_to_test,
       align = "right",
       showarrow = FALSE
     ) %>%
+    #Add a "B" above the figure to show the panel description
+    add_annotations(
+      text = "<b>B</b>",
+      x = 0.05,
+      y = 1,
+      xref = "paper",
+      yref = "paper",
+      showarrow = F,
+      xanchor = "middle",
+      yanchor = "bottom"
+    )  %>%
     layout(
-      plot_bgcolor="#e5ecf6",
-      font = list(size = 18),
-      xaxis = list(title = "Anesthetics",
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff",
-                   ticks = "outside",
-                   tickwidth = 2,
-                   ticklen = 10),
-      yaxis = list(title = ifelse(anesthetic1 == "isoflurane", paste0(axistitle), ""),
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2,
-                   range = c(axisrange_l, axisrange_u),
-                   gridcolor = "ffff",
-                   dtick = xticks),
-      showlegend = F
+      font = list(family = "times new roman", size = 22),
+      xaxis = list(
+        title = "Anesthetics",
+        showline = T,
+        showgrid = T,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        mirror = T
+        ),
+      yaxis = list(
+        title = ifelse(anesthetic1 == "isoflurane", paste0(axistitle), ""),
+        showline = T,
+        showgrid = T,
+        showticklabels = F,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        mirror = T,
+        dtick = xticks,
+        range = c(axisrange_l, axisrange_u)
+        ),
+      showlegend = T
     )
   #*****************************************************************************
   #return requested plot

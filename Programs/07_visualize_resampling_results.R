@@ -8,58 +8,250 @@ library(tidyverse)
 
 
 resampling_result_baycal_plot <- function(
-  plot_data = baycal1_both_m_all,
+  plot_data = bay_both_m_all_but_two,
   dose_group_to_plot = "Dose group 1",
   electrolyte = "CA",
   whichplot
   ) 
   {
-  
-  
   #Extract the values from the resampling results list of selected dose group
   #all values
-  vcg_means <- plot_data[["all_VCGs"]] %>% pull(vcg_mean)
+  vcg_means <- plot_data[["res_all"]] %>%
+    filter(LBTESTCD == electrolyte) %>%
+    select(iteration, vcg_mean) %>%
+    unique() %>%
+    pull(vcg_mean)
+  
   #Values which led to a consistent result
-  # vcg_con <- plot_data[["res_con"]] %>% filter(dose_group == dose_group_to_plot) %>% pull(vcg_mean) #[plot_data[["res_con"]][,"dose_group"] == dose_group_to_plot, "vcg_mean"]
-  vcg_con <- if(is.null(plot_data[["res_con"]]) | identical(plot_data[["res_con"]], character(0))) {NULL} else {plot_data[["res_con"]] %>% filter(dose_group == dose_group_to_plot) %>% pull(vcg_mean)}
-  # vcg_con <- checknullfirst(plot_data[["res_con"]], action = function(df){df %>% filter(dose_group == dose_group_to_plot) %>% pull(vcg_mean)})
+  vcg_con <- if(
+    is.null(
+      plot_data[["res_all"]] %>% filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "con")
+      ) |
+    identical(
+      plot_data[["res_all"]] %>% filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "con"),
+      character(0)
+      )
+  ) {
+    NULL
+  } else {
+    plot_data[["res_all"]] %>%
+      filter(
+      LBTESTCD == electrolyte,
+      consistency_flag == "con"
+      ) %>%
+      filter(dose_group == dose_group_to_plot) %>%
+      pull(vcg_mean)
+    }
   #Values which led to a inconsistent result
   #Inconsistently significant
-  vcg_inc_sig <- if(is.null(plot_data[["res_incon_sig"]]) | identical(plot_data[["res_incon_sig"]], character(0))) {NULL} else {plot_data[["res_incon_sig"]] %>% filter(dose_group == dose_group_to_plot) %>% pull(vcg_mean)}
+  vcg_inc_sig <- if(
+    is.null(
+      plot_data[["res_all"]] %>% filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "incon_sig")
+    ) |
+    identical(
+      plot_data[["res_all"]] %>% filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "incon_sig"),
+      character(0)
+    )
+  ) {
+    NULL
+  } else {
+    plot_data[["res_all"]] %>%
+      filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "incon_sig"
+      ) %>%
+      filter(dose_group == dose_group_to_plot) %>%
+      pull(vcg_mean)
+  }
   #Inconsistently non significant
-  vcg_inc_non_sig <- if(is.null(plot_data[["res_incon_non_sig"]]) | identical(plot_data[["res_incon_non_sig"]], character(0))) {NULL} else {plot_data[["res_incon_non_sig"]] %>% filter(dose_group == dose_group_to_plot) %>% pull(vcg_mean)}
+  vcg_inc_non_sig <- if(
+    is.null(
+      plot_data[["res_all"]] %>% filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "incon_non_sig")
+    ) |
+    identical(
+      plot_data[["res_all"]] %>% filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "incon_non_sig"),
+      character(0)
+    )
+  ) {
+    NULL
+  } else {
+    plot_data[["res_all"]] %>%
+      filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "incon_non_sig"
+      ) %>%
+      filter(dose_group == dose_group_to_plot) %>%
+      pull(vcg_mean)
+  }
   #Inverse significant
-  vcg_inv_sig <- if(is.null(plot_data[["res_inv_sig"]]) | identical(plot_data[["res_inv_sig"]], character(0))) {NULL} else {plot_data[["res_inv_sig"]] %>% filter(dose_group == dose_group_to_plot) %>% pull(vcg_mean)}
+  vcg_inv_sig <- if(
+    is.null(
+      plot_data[["res_all"]] %>% filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "inv_sig")
+    ) |
+    identical(
+      plot_data[["res_all"]] %>% filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "inv_sig"),
+      character(0)
+    )
+  ) {
+    NULL
+  } else {
+    plot_data[["res_all"]] %>%
+      filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "inv_sig"
+      ) %>%
+      filter(dose_group == dose_group_to_plot) %>%
+      pull(vcg_mean)
+  }
   #Get the mean value of the electrolyte with respect to dose group
-  original_mean <- plot_data[["res_vs_original"]] %>% filter(dose_group == dose_group_to_plot)#[plot_data[["res_vs_original"]][,"dose_group"] == dose_group_to_plot,]
+  original_mean <- plot_data[["res_all"]] %>%
+    filter(
+      LBTESTCD == electrolyte,
+      dose_group == dose_group_to_plot
+      ) %>%
+    select(dose_mean, ccg_mean) %>%
+    unique()
   
   #Create switch to turn scatter points invisible if the incoming list is empty
-  scatter_visibility_con <- ifelse(identical(plot_data[["res_con"]][], character(0)) | is.null(plot_data[["res_con"]]), F, T)
-  scatter_visibility_incon_sig <- ifelse(identical(plot_data[["res_incon_sig"]], character(0)) | is.null(plot_data[["res_incon_sig"]]), F, T)
-  scatter_visibility_incon_non_sig <- ifelse(identical(plot_data[["res_incon_non_sig"]], character(0)) | is.null(plot_data[["res_incon_non_sig"]]), F, T)
-  scatter_visibility_inv_sig <- ifelse(identical(plot_data[["res_inv_sig"]], character(0)) | is.null(plot_data[["res_inv_sig"]]), F, T)
+  scatter_visibility_con <- ifelse(length(vcg_con) == 0, F, T)
+  scatter_visibility_incon_sig <- ifelse(length(vcg_inc_sig) == 0, F, T)
+  scatter_visibility_incon_non_sig <- ifelse(length(vcg_inc_non_sig) == 0, F, T)
+  scatter_visibility_inv_sig <- ifelse(length(vcg_inv_sig) == 0, F, T)
 
   #*While the above boolean values check whether values are present in general,
   #*there's a need to check whether the values are present with respect to the
   #*selected dose group (in order to turn on/off the "consistency-area-boxes")
-  consistencybox_visibility_con <- if(scatter_visibility_con == T) {
-    consistencybox_visibility_con <- ifelse(identical(plot_data[["res_con"]] %>% filter(dose_group == dose_group_to_plot), character(0)) | is.null(plot_data[["res_con"]] %>% filter(dose_group == dose_group_to_plot)), F, T)
-  } else{F}
+  consistencybox_visibility_con <- ifelse(
+    nrow(
+      plot_data[["res_all"]] %>% filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "con",
+        dose_group == dose_group_to_plot
+        )
+    ) == 0,
+    F,
+    T
+  )
   #*specify whether there are any VCG values above or below the dose groups
   #*leading to a inconsistently significant result (above dose group = ad, below dose group = bd)
-  consistencybox_visibility_inc_sig_ad <- if(scatter_visibility_incon_sig == T) {
-    ifelse(identical(plot_data[["res_incon_sig"]] %>% filter(dose_group == dose_group_to_plot, vcg_mean >= original_mean$dose_mean), character(0)) | is.null(plot_data[["res_incon_sig"]] %>% filter(dose_group == dose_group_to_plot, vcg_mean >= original_mean$dose_mean)), F, T)
-  } else{F}
-  consistencybox_visibility_inc_sig_bd <- if(scatter_visibility_incon_sig == T) {
-    ifelse(identical(plot_data[["res_incon_sig"]] %>% filter(dose_group == dose_group_to_plot, vcg_mean < original_mean$dose_mean), character(0)) | is.null(plot_data[["res_incon_sig"]] %>% filter(dose_group == dose_group_to_plot, vcg_mean < original_mean$dose_mean)), F, T)
-  } else{F}
-  consistencybox_visibility_inc_non_sig <- if(scatter_visibility_incon_non_sig == T) {
-    ifelse(identical(plot_data[["res_incon_non_sig"]] %>% filter(dose_group == dose_group_to_plot), character(0)) | is.null(plot_data[["res_incon_non_sig"]] %>% filter(dose_group == dose_group_to_plot)), F, T)
-  } else{F}
-  consistencybox_visibility_inv_sig <- if(scatter_visibility_inv_sig == T) {
-    ifelse(identical(plot_data[["res_inv_sig"]] %>% filter(dose_group == dose_group_to_plot), character(0)) | is.null(plot_data[["res_inv_sig"]] %>% filter(dose_group == dose_group_to_plot)), F, T)
-  } else{F}
+  consistencybox_visibility_inc_sig_ad <- ifelse(
+    nrow(
+      plot_data[["res_all"]] %>% filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "incon_sig",
+        dose_group == dose_group_to_plot,
+        vcg_mean >= original_mean$dose_mean
+        )
+    ) == 0,
+    F,
+    T
+  )
+    
+  consistencybox_visibility_inc_sig_bd <- ifelse(
+    nrow(
+      plot_data[["res_all"]] %>% filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "incon_sig",
+        dose_group == dose_group_to_plot,
+        vcg_mean < original_mean$dose_mean
+      )
+    ) == 0,
+    F,
+    T
+  )
+
+  consistencybox_visibility_inc_non_sig <- ifelse(
+    nrow(
+      plot_data[["res_all"]] %>% filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "incon_non_sig",
+        dose_group == dose_group_to_plot
+      )
+    ) == 0,
+    F,
+    T
+  )
+  consistencybox_visibility_inv_sig <- ifelse(
+    nrow(
+      plot_data[["res_all"]] %>% filter(
+        LBTESTCD == electrolyte,
+        consistency_flag == "inv_sig",
+        dose_group == dose_group_to_plot
+      )
+    ) == 0,
+    F,
+    T
+  )
   
+  #*****************************************************************************
+  #*****************************************************************************
+  #*Check for each consistencybox which dose groups are present for this box.
+  #*This is mandatory for the "showlegend"-option in the visualization. Otherwise
+  #*the legend shows several same entries.
+  dose_groups_having_con <- plot_data[["res_all"]] %>% filter(
+    LBTESTCD == electrolyte,
+    consistency_flag == "con"
+    ) %>%
+    select(dose_group) %>%
+    unique() %>%
+    filter(row_number() == 1) %>%
+    pull(dose_group)
+  
+  dose_groups_having_incon_sig_ad <- plot_data[["res_all"]] %>% filter(
+    LBTESTCD == electrolyte,
+    consistency_flag == "incon_sig",
+    vcg_mean >= original_mean$dose_mean
+  ) %>%
+    select(dose_group) %>%
+    unique() %>%
+    filter(row_number() == 1) %>%
+    pull(dose_group)
+  
+  dose_groups_having_incon_sig_bd <- plot_data[["res_all"]] %>% filter(
+    LBTESTCD == electrolyte,
+    consistency_flag == "incon_sig",
+    vcg_mean < original_mean$dose_mean
+  ) %>%
+    select(dose_group) %>%
+    unique() %>%
+    filter(row_number() == 1) %>%
+    pull(dose_group)
+  
+  dose_groups_having_incon_non_sig <- plot_data[["res_all"]] %>% filter(
+    LBTESTCD == electrolyte,
+    consistency_flag == "incon_non_sig"
+  ) %>%
+    select(dose_group) %>%
+    unique() %>%
+    filter(row_number() == 1) %>%
+    pull(dose_group)
+  
+  dose_groups_having_inv_sig <- plot_data[["res_all"]] %>% filter(
+    LBTESTCD == electrolyte,
+    consistency_flag == "inv_sig"
+  ) %>%
+    select(dose_group) %>%
+    unique() %>%
+    filter(row_number() == 1) %>%
+    pull(dose_group)
+  #*****************************************************************************
+
   #set the y-axis range respectiveley to the selected electrolyte
   yaxislowerrange <- if(electrolyte == "K") {
     0
@@ -86,25 +278,47 @@ resampling_result_baycal_plot <- function(
   sampling_group <- plot_data[["vcg_sample"]]
 
   #define words for the axis title
-  yaxistitle <- ifelse(electrolyte == "K", "K-concentration in serum [mmol/L]", "Ca-concentration in serum [mmol/L]")
+  yaxistitle <- if(electrolyte == "K"){
+    "K<sup>+</sup>-concentration in serum [mmol/L]"
+  }else if(electrolyte == "CA"){
+    "Ca<sup>2+</sup>-concentration in serum [mmol/L]"
+  }else{
+    paste0(electrolyte)
+  }
   
   #Get max and min mean values leading to consistent results or to respective errors
   maxcon <- ifelse(length(vcg_con) != 0, max(vcg_con), -5)
   mincon <- ifelse(length(vcg_con) != 0, min(vcg_con), -5)
-  #*For type I error it also plays a role "on which side" of the dose mean the
+  #*For incon sig results it also plays a role "on which side" of the dose mean the
   #*VCG mean is. Therefore, we split this into two groups:
   #* "above dose group" (ad), and "below dose group" (bd)
-  maxincsig_ad <- ifelse(length(vcg_inc_sig[vcg_inc_sig >= original_mean$dose_mean]) != 0, max(vcg_inc_sig[vcg_inc_sig >=  original_mean$dose_mean]), -5)
-  minincsig_ad <- ifelse(length(vcg_inc_sig[vcg_inc_sig >= original_mean$dose_mean]) != 0, min(vcg_inc_sig[vcg_inc_sig >=  original_mean$dose_mean]), -5)
-  maxincsig_bd <- ifelse(length(vcg_inc_sig[vcg_inc_sig < original_mean$dose_mean]) != 0, max(vcg_inc_sig[vcg_inc_sig <  original_mean$dose_mean]), -5)
-  minincsig_bd <- ifelse(length(vcg_inc_sig[vcg_inc_sig < original_mean$dose_mean]) != 0, min(vcg_inc_sig[vcg_inc_sig <  original_mean$dose_mean]), -5)
+  maxincsig_ad <- ifelse(
+    length(vcg_inc_sig[vcg_inc_sig >= original_mean$dose_mean]) != 0,
+    max(vcg_inc_sig[vcg_inc_sig >=  original_mean$dose_mean]),
+    -5
+    )
+  minincsig_ad <- ifelse(
+    length(vcg_inc_sig[vcg_inc_sig >= original_mean$dose_mean]) != 0,
+    min(vcg_inc_sig[vcg_inc_sig >=  original_mean$dose_mean]),
+    -5
+    )
+  maxincsig_bd <- ifelse(
+    length(vcg_inc_sig[vcg_inc_sig < original_mean$dose_mean]) != 0,
+    max(vcg_inc_sig[vcg_inc_sig <  original_mean$dose_mean]),
+    -5
+    )
+  minincsig_bd <- ifelse(
+    length(vcg_inc_sig[vcg_inc_sig < original_mean$dose_mean]) != 0,
+    min(vcg_inc_sig[vcg_inc_sig <  original_mean$dose_mean]),
+    -5
+    )
   maxincnonsig <- ifelse(length(vcg_inc_non_sig) != 0, max(vcg_inc_non_sig), -5)
   minincnonsig <- ifelse(length(vcg_inc_non_sig) != 0, min(vcg_inc_non_sig), -5)
   maxinvsig <- ifelse(length(vcg_inv_sig) != 0, max(vcg_inv_sig), -5)
   mininvsig <- ifelse(length(vcg_inv_sig) != 0, min(vcg_inv_sig), -5)
  
   
-  #*Make a function to show the mean value of the ccg across all the dose groups
+  #*Make a function to show the mean value of the CCG across all the dose groups
   ccgline <- function(){
     if(dose_group_to_plot == "Dose group 1"){
       list(type = "line", y0 = ~original_mean %>% pull(ccg_mean),
@@ -120,7 +334,7 @@ resampling_result_baycal_plot <- function(
 
   #*Make a function to toggle the "result boxes" off if there are no results
   #*leading to a respective error (e.g., if there are no VCG values leading to
-  #*a type III error, there "box" will hide under the ccg mean value (this 
+  #*a type III error, there "box" will hide under the CCG mean value (this 
   #*workaround is necessary as "NULL" values lead to appearance of random boxes
   #*in the plot))
   consistencybox <- function(restype, minval, maxval, boxcolor){
@@ -168,7 +382,7 @@ resampling_result_baycal_plot <- function(
       ),
       name = "sampled VCG mean values\nleading to a consistent result",
       legendgroup = "VCG_con",
-      showlegend = ifelse(dose_group_to_plot == "Dose group 1", T, F),
+      showlegend = ifelse(dose_group_to_plot == dose_groups_having_con, T, F),
       visible = scatter_visibility_con
   ) %>%
     #add inconsistently significant results as red boxes
@@ -186,7 +400,12 @@ resampling_result_baycal_plot <- function(
       ),
       name = "sampled VCG mean values leading to\nan inconsistently significant result",
       legendgroup = "VCG_con",
-      showlegend = ifelse(dose_group_to_plot == "Dose group 1" & scatter_visibility_incon_sig == T, T, F),
+      showlegend = ifelse(
+        dose_group_to_plot == dose_groups_having_incon_sig_ad &
+          scatter_visibility_incon_sig == T,
+        T,
+        F
+        ),
       visible = consistencybox_visibility_inc_sig_ad
     ) %>%
     #below dose group mean
@@ -205,7 +424,7 @@ resampling_result_baycal_plot <- function(
       legendgroup = "VCG_con",
       showlegend = ifelse(
         #Show this legend only if no inconsistently significant values above dosage are shown
-        dose_group_to_plot == "Dose group 1" &
+        dose_group_to_plot == dose_groups_having_incon_sig_bd &
           consistencybox_visibility_inc_sig_ad == F &
           consistencybox_visibility_inc_sig_bd == T,
         T,
@@ -227,7 +446,7 @@ resampling_result_baycal_plot <- function(
       ),
       name = "sampled VCG mean values leading to\nan inconsistently non-significant result",
       legendgroup = "VCG_con",
-      showlegend = ifelse(dose_group_to_plot == "Dose group 1", T, F),
+      showlegend = ifelse(dose_group_to_plot == dose_groups_having_incon_non_sig, T, F),
       visible = scatter_visibility_incon_non_sig
     ) %>%
     #add inverse significant results
@@ -244,32 +463,40 @@ resampling_result_baycal_plot <- function(
       ),
       name = "sampled VCG mean values leading\nto an inverse significant result",
       legendgroup = "VCG_con",
-      showlegend = ifelse(dose_group_to_plot == "Dose group 1", T, F),
+      showlegend = ifelse(dose_group_to_plot == dose_groups_having_inv_sig, T, F),
       visible = scatter_visibility_inv_sig
     ) %>%
     layout(
-      plot_bgcolor="#e5ecf6",
-      font = list(size = 22),
+      font = list(family = "times new roman", size = 22),
       barmode = "overlay",
-      #add mean value of ccg as a horizontal dashed line
+      #add mean value of CCG as a horizontal dashed line
       # shapes = list(ccgline()),
-      xaxis = list(title = "",
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff",
-                   ticks = "outside",
-                   tickwidth = 2,
-                   ticklen = 10),
-      yaxis = list(title = paste0(yaxistitle),
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff",
-                   range = c(yaxislowerrange, yaxisupperrange))
+      xaxis = list(
+        title = "",
+        showline = T,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        tickangle = 90,
+        mirror = T
+        ),
+      yaxis = list(
+        title = "",#paste0(yaxistitle),
+        # showline = T,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        showticklabels = F,
+        mirror = T,
+        range = c(yaxislowerrange, yaxisupperrange)
+        )
       )
   #*****************************************************************************
   #*****************************************************************************
   #*****************************************************************************
-  #*Make a box plot showing all mean values of all VCGs along with mean value of ccg
+  #*Make a box plot showing all mean values of all VCGs along with mean value of CCG
   plot_ccg_vs_VCGs <- plot_ly() %>%
     #Make these dummy-traces in order to have a visible legend
     add_trace(type = "scatter", mode = "markers", x = "Control", y = -5, marker = list(color = "#6a3d9a", size = 7, opacity = 0.5, line = list(color = "#000000", width = 2)), name = "all sampled VCG mean values", legendgroup = "VCG_all", showlegend = ifelse(dose_group_to_plot == "Dose group 1", T, F)) %>%
@@ -288,7 +515,7 @@ resampling_result_baycal_plot <- function(
       legendgroup = "VCG_all",
       showlegend = FALSE
     ) %>%
-    #Add mean value of ccg
+    #Add mean value of CCG
     add_trace(
       type = "scatter", mode = "markers",
       x = "Control",
@@ -299,8 +526,8 @@ resampling_result_baycal_plot <- function(
         size = 14,
         line = list(color = "#000000", width = 2)
         ),
-      name = "ccg mean value",
-      legendgroup = "ccg"
+      name = "CCG mean value",
+      legendgroup = "CCG"
     )%>%
     #Add the amount of iterations
     add_annotations(
@@ -316,25 +543,28 @@ resampling_result_baycal_plot <- function(
       showarrow = FALSE
     ) %>%
     layout(
-      plot_bgcolor="#e5ecf6",
-      font = list(size = 18),
-      xaxis = list(title = "",
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff",
-                   ticks = "outside",
-                   tickwidth = 2,
-                   ticklen = 10,
-                   showline = T, mirror = T,
-                   linecolor = "000000", linewidth = 2),
-      yaxis = list(title = paste0(yaxistitle),
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff",
-                   range = c(yaxislowerrange, yaxisupperrange),
-                   linecolor = "000000",
-                   showline = T, mirror = T,
-                   linecolor = "000000", linewidth = 2)
+      font = list(family = "times new roman", size = 18),
+      xaxis = list(
+        title = "",
+        showline = T,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        tickangle = 90,
+        mirror = T
+        ),
+      yaxis = list(
+        title = paste0(yaxistitle),
+        showline = T,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        showticklabels = T,
+        range = c(yaxislowerrange, yaxisupperrange),
+        mirror = T
+        )
     )
   
   #return requested plot

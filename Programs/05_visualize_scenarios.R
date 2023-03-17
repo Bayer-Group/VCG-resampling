@@ -13,26 +13,31 @@
 
 #*********************************************************************************;
 scenarios_plot <- function(
-  plot_data = baycal1_both_m_all_but_two,
+  plot_data = baycal1_both_m_all,
   electrolyte = "CA",
-  general_legend_on_switch = T
+  general_legend_on_switch = T,
+  xtickangle = 90
 )
   {
   #load libraries
   require(tidyverse)
   require(plotly)
   #Retrieve data from VCG population which was user for resampling
-  vcg_sample <- plot_data[["sampling_group"]]
+  vcg_sample <- plot_data[["sampling_group"]] %>% filter(LBTESTCD == electrolyte)
   #Retrieve sentinel animal data
-  sentinel_animals <- plot_data[["sentinel_animals"]]$LBORRES
+  sentinel_animals <- plot_data[["sentinel_animals"]] %>%
+    filter(LBTESTCD == electrolyte) %>%
+    pull(LBORRES)
   #Retrieve OCG animal data which was removed
-  removed_CCG_animals <- plot_data[["ccgs_to_be_removed"]]$LBORRES
+  removed_CCG_animals <- plot_data[["ccgs_to_be_removed"]] %>%
+    filter(LBTESTCD == electrolyte) %>%
+    pull(LBORRES)
   #*****************************************************************************
   #Customize lower range of y-axis with respect to the selected electrolyte
   yaxislowerrange <- if(electrolyte == "K") {
     0
   } else if(electrolyte == "CA") {
-    2
+    2.1
   } else if(electrolyte == "SODIUM") {
     135
   } else if(electrolyte == "PHOS") {
@@ -132,7 +137,7 @@ scenarios_plot <- function(
     #Make these dummy-traces in order to have a visible legend
     add_trace(type = "scatter",
               mode = "markers",
-              x = "",
+              x = "VCG sample population",
               y = -5,
               marker = co2_markers,
               name = "CO<sub>2</sub>-subset",
@@ -141,14 +146,14 @@ scenarios_plot <- function(
               visible = scatter_visibility_co2) %>%
     add_trace(type = "scatter",
               mode = "markers",
-              x = "",
+              x = "VCG sample population",
               y = -5,
               marker = iso_markers,
               name = "isoflurane-subset",
               legendgroup = "iso_subset",
               showlegend = (scatter_visibility_iso == general_legend_on_switch),
               visible = scatter_visibility_iso) %>%
-    add_segments(x = "", xend = "",
+    add_segments(x = "VCG sample population", xend = "VCG sample population",
                  y = -5, yend = -5,
                  name = "VCG filter range",
                  line = list(color = "black", dash = "dot"),
@@ -156,7 +161,7 @@ scenarios_plot <- function(
     #add points from CO2 subset
     add_trace(
       type = "box", boxpoints = "all",
-      x = "",
+      x = "VCG sample population",
       y = vcg_sample %>% filter(ANESTHETICS == "CO2") %>% pull(LBORRES),
       pointpos = 0,
       jitter = 1,
@@ -171,7 +176,7 @@ scenarios_plot <- function(
     #add points from isoflurane subset
     add_trace(
       type = "box", boxpoints = "all",
-      x = "",
+      x = "VCG sample population",
       y = vcg_sample %>% filter(ANESTHETICS == "isoflurane") %>% pull(LBORRES),
       pointpos = 0,
       jitter = 1,
@@ -183,18 +188,8 @@ scenarios_plot <- function(
       showlegend = FALSE,
       visible = scatter_visibility_iso
     ) %>%
-    # #Add count of VCG sample population animals within range as annotation
-    # add_annotations(
-    #     text = n_vcg_sample,
-    #     x = 0.95, y = 0.95,
-    #     xref = "paper", yref = "paper",
-    #     showarrow = F,
-    #     xanchor = "right",
-    #     yanchor = "top"
-    # ) %>%
     layout(
-      plot_bgcolor="#e5ecf6",
-      # font = list(size = 22),
+      font = list(family = "times new roman", size = 22),
       #Add dashed lines showing the ranges from which you derive your VCGs
       shapes = list(
         list(type = "line",
@@ -206,15 +201,26 @@ scenarios_plot <- function(
              x0 = 0, x1 = 2.09, xref = "paper",
              line = list(color = "black", dash = "dot"))
       ),
-      xaxis = list(title = "VCG sample population",
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff"),
-      yaxis = list(title = "Ca<sup>2+</sup>-concentration in serum [mmol/L]",
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff",
-                   range = c(yaxislowerrange, yaxisupperrange))
+      xaxis = list(
+        title = "",#"VCG sample population",
+        showline = T,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        tickangle = xtickangle,
+        mirror = T
+        ),
+      yaxis = list(
+        title = "Ca<sup>2+</sup>-concentration in serum [mmol/L]",
+        showline = T,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        mirror = T,
+        range = c(yaxislowerrange, yaxisupperrange)
+        )
     )
   # plot_sample_population
   
@@ -225,7 +231,8 @@ scenarios_plot <- function(
     add_trace(
       type = "scatter",
       mode = "markers",
-      x = "", y = -5,
+      x = "CCG animals",
+      y = -5,
       marker = removed_animals_markers,
       name = "removed CCG animals",
       showlegend = general_legend_on_switch
@@ -233,7 +240,8 @@ scenarios_plot <- function(
     add_trace(
       type = "scatter",
       mode = "markers",
-      x = "", y = -5,
+      x = "CCG animals", 
+      y = -5,
       marker = sentinel_animals_markers,
       name = "sentinel animals",
       showlegend = (scatter_visibility_sentinel == general_legend_on_switch),
@@ -243,7 +251,8 @@ scenarios_plot <- function(
     #add points from isoflurane subset
     add_trace(
       type = "box", boxpoints = "all",
-      x = "", y = removed_CCG_animals,
+      x = "CCG animals",
+      y = removed_CCG_animals,
       pointpos = 0,
       jitter = 1,
       marker = removed_animals_markers,
@@ -255,7 +264,8 @@ scenarios_plot <- function(
     #Add the CCG animals which were kept as sentinel animals
     add_trace(
       type = "box", boxpoints = "all",
-      x = "", y = sentinel_animals,
+      x = "CCG animals",
+      y = sentinel_animals,
       pointpos = 0,
       jitter = 0.5,
       marker = sentinel_animals_markers,
@@ -265,64 +275,35 @@ scenarios_plot <- function(
       visible = scatter_visibility_sentinel,
       showlegend = FALSE
     ) %>%
-    # #Add count of removed animals
-    # add_annotations(
-    #   text = n_removed_animals,
-    #   x = 0.95, y = 0.95,
-    #   xref = "paper", yref = "paper",
-    #   showarrow = F,
-    #   xanchor = "right",
-    #   yanchor = "top"
-    # ) %>%
-    # #Add count of sentinel animals
-    # add_annotations(
-    #   text = n_sentinel,
-    #   x = 0.95, y = 0.9,
-    #   xref = "paper", yref = "paper",
-    #   showarrow = F,
-    #   xanchor = "right",
-    #   yanchor = "top",
-    #   visible = scatter_visibility_sentinel
-    # ) %>%
     layout(
-      plot_bgcolor="#e5ecf6",
-      # font = list(size = 22),
-      xaxis = list(title = "CCG animals",
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff"),
-      yaxis = list(title = "",
-                   zerolinecolor = "#ffff", 
-                   zerolinewidth = 2, 
-                   gridcolor = "ffff",
-                   range = c(yaxislowerrange, yaxisupperrange))
+      # font = list(family = "times new roman", size = 22),
+      xaxis = list(
+        title = "",#"CCG animals",
+        showline = T,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        tickangle = xtickangle,
+        mirror = T
+        ),
+      yaxis = list(
+        title = "",
+        showline = T,
+        linewidth = 2,
+        ticks = "outside",
+        tickwidth = 2,
+        ticklen = 10,
+        mirror = T,
+        showticklabels = F,
+        range = c(yaxislowerrange, yaxisupperrange)
+        )
     )
-  # plot_CCG_and_sentinels
-  
+
   #Combine both plots into one
   VCG_recruitment_plot <- subplot(
     plot_sample_population, plot_ccg_and_sentinels,
     titleX = T, titleY = T
-    ) #%>%
-    # #Add the y-axis title as an annotation
-    # add_annotations(
-    #   x = -0.065, y = 0.5, text = "Ca-concentration in serum [mmol/L]",
-    #   font = list(size = 24), textangle = 270, showarrow = F,
-    #   xref= "paper", yref= "paper"
-    # )
+    )
   VCG_recruitment_plot
 }
-
-#*********************************************************************************;
-#*********************************************************************************;
-#*********************************************************************************;
-##### program ends here
-
-# save.image(file = paste(rootpath,"\\Programs\\",program,".RData",sep=""))
-# 
-# 
-# #*
-# #* DO NOT EDIT BELOW THESE LINES
-# #*
-# savehistory(file = paste(rootpath,"\\Programs\\",program,".Rhistory",sep=""))
-# sessionInfo()

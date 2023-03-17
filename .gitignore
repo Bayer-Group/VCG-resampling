@@ -1,0 +1,12 @@
+## Credentials
+
+## Files and folders
+eva/
+pics/
+not_for_subnission_get_LB_parameters.R
+not_for_submission_get_legacy_study.R
+
+*.RData
+*.Rhistory
+
+.Rproj.user/

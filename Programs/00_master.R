@@ -6,8 +6,8 @@
 rm(list = ls(all.names = TRUE))
 # name of the program
 program <- "00_master.R"
-#* Version:           <10 [2022_12_29]>;
-#* Project:           <ViCoG>;
+#* Version:           <14 [2023_03_12]>;
+#* Project:           <VCG>;
 #* Author:            <Alexander Gurjanov>;
 #*;
 #*********************************************************************************;
