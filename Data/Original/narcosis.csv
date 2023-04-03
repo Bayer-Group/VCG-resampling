@@ -1,33 +1,33 @@
-﻿study_id;start_year;anesthetics
-T100046-1;2012;CO2/air
-T100495-9;2013;CO2/air
-T100512-9;2013;CO2/air
-T100541-1;2013;CO2/air
-T100555-6;2013;CO2/air
-T101174-4;2014;CO2/air
-T101220-6;2014;CO2/air
-T101352-2;2014;CO2/air
-T101546-7;2014;CO2/air
-T101700-9;2015;CO2/O2
-T101767-2;2014;CO2/air
-T102046-3;2015;CO2/air
-T102218-4;2016;CO2/air
-T102609-8;2016;CO2/O2
-T102782-0;2016;CO2/O2
-T103112-8;2017;isoflurane
-T103141-0;2017;isoflurane
-T103165-6;2017;isoflurane
-T103236-5;2017;isoflurane
-T103239-8;2017;isoflurane
-T103241-1;2017;isoflurane
-T103430-1;2017;isoflurane
-T103529-0;2017;isoflurane
-T103815-8;2018;isoflurane
-T103901-4;2018;isoflurane
-T103925-0;2018;isoflurane
-T104039-7;2018;isoflurane
-T104151-2;2018;isoflurane
-T104404-3;2019;isoflurane
-T105000-6;2020;isoflurane
-T105017-4;2020;isoflurane
-T105216-5;2021;isoflurane
+﻿study_id;start_year;anesthetics;NA_reason
+T100046-1;2012;CO2/air;NA
+T100495-9;2013;CO2/air;NA
+T100512-9;2013;CO2/air;NA
+T100541-1;2013;CO2/air;NA
+T100555-6;2013;CO2/air;NA
+T101174-4;2014;CO2/air;not found in the components
+T101220-6;2014;CO2/air;NA
+T101352-2;2014;CO2/air;NA
+T101546-7;2014;CO2/air;NA
+T101700-9;2015;CO2/O2;NA
+T101767-2;2014;CO2/air;NA
+T102046-3;2015;CO2/air;NA
+T102218-4;2016;CO2/air;NA
+T102609-8;2016;CO2/O2;not found in the components
+T102782-0;2016;CO2/O2;NA
+T103112-8;2017;isoflurane;NA
+T103141-0;2017;isoflurane;NA
+T103165-6;2017;isoflurane;not found in the components
+T103236-5;2017;isoflurane;NA
+T103239-8;2017;isoflurane;NA
+T103241-1;2017;isoflurane;no data available
+T103430-1;2017;isoflurane;no data available
+T103529-0;2017;isoflurane;NA
+T103815-8;2018;isoflurane;NA
+T103901-4;2018;isoflurane;NA
+T103925-0;2018;isoflurane;NA
+T104039-7;2018;isoflurane;NA
+T104151-2;2018;isoflurane;not found in the components
+T104404-3;2019;isoflurane;not found in the components
+T105000-6;2020;isoflurane;NA
+T105017-4;2020;isoflurane;not found in the components
+T105216-5;2021;isoflurane;NA

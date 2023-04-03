@@ -70,6 +70,9 @@ cat("\n Results will be stored in folder:",getwd()," \n")
 #******************************************************************************
 #Load libraries
 library(tidyverse)
+library(plotly)
+library(DescTools)
+library(webshot)
 #*******************************************************************************
 #Extract the parameters stired in the Data/Derived folder:
 #Of the VCG sample population (confounder present)
@@ -133,6 +136,48 @@ lowest_values_of_sample_pop_con_rem <- sample_population_con_rem %>%
   arrange(LBORRES) %>%
   slice(1:10) %>%
   pull(LBORRES)
+#******************************************************************************
+#*Create a third data frame for the VCG sample population where the values affected
+#*where the VCG sample population is filtered to match the mean +- 2*sd values
+#*of the CA parameters of the legacy study. 5 sentinel animals are kept and these
+#*are selected by body weight. I.e., the 2 heaviest, the 2 lightest and 1 middle
+#*rat is kept in the set.
+
+#*Extract the 2 heaviest, 2 lightest and 1 middle animal from the CCG set of the
+#*legacy study
+#*CAUTION: This code only works if 10 control group animals are present in 
+#*the set! You might consider to change the slice()-statement to match the
+#*set more properly.
+sentinel_animals_filterrange <- legacy_study_groups %>%
+  filter(
+    LBTESTCD == "CA",
+    SEX == "M",
+    trial_set_description == "Control"
+  ) %>%
+  arrange(desc(INITBW)) %>%
+  slice(1,2,5,9,10) %>%
+  #get the ranges by mean +- 2 * sd from the set
+  summarise(
+    minval = mean(LBORRES) - 2 * sd(LBORRES),
+    maxval = mean(LBORRES) + 2 * sd(LBORRES)
+  )
+
+#filter sample population to match the selected range filters
+sample_population_sent_pres <- sample_population_con_pres %>%
+  filter(between(LBORRES, sentinel_animals_filterrange[1], sentinel_animals_filterrange[2]))
+
+#take the 10 highest values of the sample
+highest_values_of_sample_pop_sent_ani <- sample_population_sent_pres %>%
+  arrange(desc(LBORRES)) %>%
+  slice(1:10) %>%
+  pull(LBORRES)
+
+#take the 10 lowest values of the sample
+lowest_values_of_sample_pop_sent_ani <- sample_population_sent_pres %>%
+  arrange(LBORRES) %>%
+  slice(1:10) %>%
+  pull(LBORRES)
+
 #*******************************************************************************
 #*Select the control group values and the highest dose-group values of the
 #*legacy study
@@ -144,7 +189,7 @@ legacy_study_dose_3 <- legacy_study_groups %>%
   filter(LBTESTCD == "CA", trial_set_description == "Dose group 3", SEX == "M") %>% pull(LBORRES)
 #*******************************************************************************
 #*******************************************************************************
-#Calculate the two-sample t-tests-----------------------------------------------
+#Calculate the effect sizes-----------------------------------------------------
 #*******************************************************************************
 #Between the 10 highest and 10 lowest values of the VCG sample population with
 #the confounder present:
@@ -158,6 +203,12 @@ effect_size_sample_pop_con_rem <- CohenD(
   highest_values_of_sample_pop_con_rem,
   lowest_values_of_sample_pop_con_rem
 )
+#Between the 10 highest and 10 lowest values of the VCG sample population with
+#sentinel animals as an additional filter range:
+effect_size_sample_pop_sent_ani <- CohenD(
+  highest_values_of_sample_pop_sent_ani,
+  lowest_values_of_sample_pop_sent_ani
+)
 #Between the control group and Dose group 3 of the legacy study:
 effect_size_legacy_study <- CohenD(
   legacy_study_dose_3,
@@ -165,7 +216,7 @@ effect_size_legacy_study <- CohenD(
 )
 #*******************************************************************************
 #*******************************************************************************
-#Calculate effect sizes---------------------------------------------------------
+#Calculate the two-sample t-tests-----------------------------------------------
 #*******************************************************************************
 #Between the 10 highest and 10 lowest values of the VCG sample population with
 #the confounder present:
@@ -179,14 +230,467 @@ t_test_sample_pop_con_rem <- t.test(
   highest_values_of_sample_pop_con_rem, lowest_values_of_sample_pop_con_rem,
   var.equal = T
 )
+#Between the 10 highest and 10 lowest values of the VCG sample population with
+#the sentinel animals as an additional filter:
+t_test_sample_pop_sent_ani <- t.test(
+  highest_values_of_sample_pop_sent_ani, lowest_values_of_sample_pop_sent_ani,
+  var.equal = T
+)
 #Between the control group and Dose group 3 of the legacy study:
 t_test_legacy_study <- t.test(
   legacy_study_dose_3, legacy_study_control,
   var.equal = T
 )
 
-
-
+#*******************************************************************************
+#*******************************************************************************
+#*Visualize results as scatter plots
+#*******************************************************************************
+#Customize lower range of y-axis with respect to the selected electrolyte
+distance_plot <- plot_ly() %>%
+  #Make these dummy-traces in order to have a visible legend
+  add_trace(
+    type = "scatter",
+    mode = "markers",
+    x = "legacy study",
+    y = -5,
+    marker = list(
+      color = "#000000",
+      symbol = "cross",
+      line = list(color = "#000000"),
+      opacity = 1
+      ),
+    size = 10,
+    name = "VCG sample population: 10 highest values"
+    ) %>%
+  add_trace(
+    type = "scatter",
+    mode = "markers",
+    x = "legacy study",
+    y = -5,
+    marker = list(
+      color = "#ffffff",
+      opacity = 1,
+      line = list(color = "#000000", width = 2)
+      ),
+    size = 10,
+    name = "VCG sample population: 10 lowest values"
+  ) %>%
+  add_trace(
+    type = "scatter",
+    mode = "markers",
+    x = "legacy study",
+    y = -5,
+    marker = list(
+      color = "#000000",
+      opacity = 1,
+      symbol = "triangle-up",
+      line = list(color = "#000000")
+      ),
+    size = 10,
+    name = "legacy study: Dose group 3"
+  ) %>%
+  add_trace(
+    type = "scatter",
+    mode = "markers",
+    x = "legacy study",
+    y = -5,
+    marker = list(
+      color = "#ffffff",
+      opacity = 1,
+      line = list(color = "#000000", width = 2),
+      symbol = "square"
+      ),
+    size = 10,
+    name = "legacy study: CCG"
+  ) %>%
+  #*****************************************************************************
+  #*****************************************************************************
+  #*Add the scattered points----------------------------------------------------
+  #*****************************************************************************
+  #Confounder present
+  add_boxplot(
+    x = "confounder present",
+    y = highest_values_of_sample_pop_con_pres,
+    marker = list(
+      color = "#000000",
+      symbol = "cross",
+      size = 10
+      ),
+    boxpoints = "all",
+    jitter = 1,
+    pointpos = 0,
+    name = "VCG sample population",
+    fillcolor = "rgba(255,255,255,0)",
+    line = list(color = "rgba(255,255,255,0)"),
+    showlegend = F
+  ) %>%
+  add_boxplot(
+    x = "confounder present",
+    y = lowest_values_of_sample_pop_con_pres,
+    marker = list(
+      color = "#ffffff",
+      line = list(color = "#000000", width = 2),
+      size = 10
+      ),
+    boxpoints = "all",
+    jitter = 1,
+    pointpos = 0,
+    name = "VCG sample population",
+    fillcolor = "rgba(255,255,255,0)",
+    line = list(color = "rgba(255,255,255,0)"),
+    showlegend = F
+  ) %>%
+  #*****************************************************************************
+  #Confounder filtered
+  add_boxplot(
+    x = "confounder removed",
+    y = highest_values_of_sample_pop_con_rem,
+    marker = list(
+      color = "#000000",
+      symbol = "cross",
+      size = 10
+      ),
+    boxpoints = "all",
+    jitter = 1,
+    pointpos = 0,
+    name = "VCG sample population",
+    fillcolor = "rgba(255,255,255,0)",
+    line = list(color = "rgba(255,255,255,0)"),
+    showlegend = F
+  ) %>%
+  add_boxplot(
+    x = "confounder removed",
+    y = lowest_values_of_sample_pop_con_rem,
+    marker = list(
+      color = "#ffffff",
+      line = list(color = "#000000", width = 2),
+      size = 10
+      ),
+    boxpoints = "all",
+    jitter = 1,
+    pointpos = 0,
+    name = "VCG sample population",
+    fillcolor = "rgba(255,255,255,0)",
+    line = list(color = "rgba(255,255,255,0)"),
+    showlegend = F
+  ) %>%
+  #*****************************************************************************
+  # #Sentinel animals as an additional filter
+  # add_boxplot(
+  #   x = "filtered to match sentinel animals",
+  #   y = highest_values_of_sample_pop_sent_ani,
+  #   marker = list(
+  #     color = "#000000",
+  #     symbol = "cross",
+  #     size = 10
+  #     ),
+  #   boxpoints = "all",
+  #   jitter = 1,
+  #   pointpos = 0,
+  #   name = "VCG sample population",
+  #   fillcolor = "rgba(255,255,255,0)",
+  #   line = list(color = "rgba(255,255,255,0)"),
+  #   showlegend = F
+  # ) %>%
+  # add_boxplot(
+  #   x = "filtered to match sentinel animals",
+  #   y = lowest_values_of_sample_pop_sent_ani,
+  #   marker = list(
+  #     color = "#ffffff",
+  #     line = list(color = "#000000", width = 2),
+  #     size = 10
+  #     ),
+  #   boxpoints = "all",
+  #   jitter = 1,
+  #   pointpos = 0,
+  #   name = "VCG sample population",
+  #   fillcolor = "rgba(255,255,255,0)",
+  #   line = list(color = "rgba(255,255,255,0)"),
+  #   showlegend = F
+  # ) %>%
+  #*****************************************************************************
+  #Legacy study
+  add_boxplot(
+    x = "legacy study",
+    y = legacy_study_dose_3,
+    marker = list(
+      color = "#000000",
+      symbol = "triangle-up",
+      size = 10
+      ),
+    boxpoints = "all",
+    jitter = 1,
+    pointpos = 0,
+    name = "legacy study Dose group 3",
+    fillcolor = "rgba(255,255,255,0)",
+    line = list(color = "rgba(255,255,255,0)"),
+    showlegend = F
+  ) %>%
+  add_boxplot(
+    x = "legacy study",
+    y = legacy_study_control,
+    marker = list(
+      color = "#ffffff",
+      line = list(color = "#000000", width = 2),
+      symbol = "square",
+      size = 10
+      ),
+    boxpoints = "all",
+    jitter = 1,
+    pointpos = -.2,
+    name = "legacy study control group",
+    fillcolor = "rgba(255,255,255,0)",
+    line = list(color = "rgba(255,255,255,0)"),
+    showlegend = F
+  ) %>%
+  #*****************************************************************************
+  #*Add annotations to mark difference in means and 95 % CI
+  #*****************************************************************************
+  #*confounder present
+  add_annotations(
+    text = ~paste0(
+      # (signif(mean(highest_values_of_sample_pop_con_pres) - mean(lowest_values_of_sample_pop_con_pres), 3)),
+      "95 % CI [",
+      signif(t_test_sample_pop_con_pres[["conf.int"]][1], 3),
+      "; ",
+      signif(t_test_sample_pop_con_pres[["conf.int"]][2], 3),
+      "]"
+    ),
+    size = 8,
+    x = 0.03,
+    xanchor = "top",
+    xref = "paper",
+    y = mean(lowest_values_of_sample_pop_con_pres) + (mean(highest_values_of_sample_pop_con_pres) - mean(lowest_values_of_sample_pop_con_pres)) / 2,
+    yanchor = "center",
+    textangle = 270,
+    showarrow = FALSE
+  ) %>%
+  #*****************************************************************************
+  #*confounder removed
+  add_annotations(
+    text = ~paste0(
+      # (signif(mean(highest_values_of_sample_pop_con_rem) - mean(lowest_values_of_sample_pop_con_rem), 3)),
+      "95 % CI [",
+      signif(t_test_sample_pop_con_rem[["conf.int"]][1], 3),
+      "; ",
+      signif(t_test_sample_pop_con_rem[["conf.int"]][2], 3),
+      "]"
+    ),
+    size = 8,
+    x = .37,
+    xanchor = "top",
+    xref = "paper",
+    y = mean(lowest_values_of_sample_pop_con_rem) + (mean(highest_values_of_sample_pop_con_rem) - mean(lowest_values_of_sample_pop_con_rem)) / 2,
+    yanchor = "center",
+    textangle = 270,
+    showarrow = FALSE
+  ) %>%
+  #*****************************************************************************
+  # #*sentinel animals as an additional filter
+  # add_annotations(
+  #   text = ~paste0(
+  #     # (signif(mean(highest_values_of_sample_pop_con_rem) - mean(lowest_values_of_sample_pop_con_rem), 3)),
+  #     "95 % CI [",
+  #     signif(t_test_sample_pop_sent_ani[["conf.int"]][1], 3),
+  #     "; ",
+  #     signif(t_test_sample_pop_sent_ani[["conf.int"]][2], 3),
+  #     "]"
+  #   ),
+  #   size = 8,
+  #   x = 0.51,
+  #   xanchor = "top",
+  #   xref = "paper",
+  #   y = mean(lowest_values_of_sample_pop_sent_ani) + (mean(highest_values_of_sample_pop_sent_ani) - mean(lowest_values_of_sample_pop_sent_ani)) / 2,
+  #   yanchor = "center",
+  #   textangle = 270,
+  #   showarrow = FALSE
+  # ) %>%
+  #*****************************************************************************
+  #*legacy study
+  add_annotations(
+    text = ~paste0(
+      # (signif(mean(highest_values_of_sample_pop_con_rem) - mean(lowest_values_of_sample_pop_con_rem), 3)),
+      "95 % CI [",
+      signif(t_test_legacy_study[["conf.int"]][1], 2),
+      "; ",
+      signif(t_test_legacy_study[["conf.int"]][2], 3),
+      "]"
+    ),
+    size = 8,
+    x = .73, #if 4 groups: 0.75
+    xanchor = "top",
+    xref = "paper",
+    y = mean(legacy_study_control) + (mean(legacy_study_dose_3) - mean(legacy_study_dose_3)) / 2,
+    yanchor = "center",
+    textangle = 270,
+    showarrow = FALSE
+  ) %>%
+  layout(
+    font = list(family = "times new roman", size = 22),
+    #add lines to show difference in means between each group
+    shapes = list(
+      #*************************************************************************
+      #*confounder present
+      list(
+        type = "line",
+        x0 = .07,
+        x1 = .07,
+        xref = "paper",
+        y0 = mean(lowest_values_of_sample_pop_con_pres),
+        y1 = mean(highest_values_of_sample_pop_con_pres),
+        line = list(color = "#000000")
+      ),
+      list(
+        type = "line",
+        x0 = .07,
+        x1 = .09,
+        xref = "paper",
+        y0 = mean(lowest_values_of_sample_pop_con_pres),
+        y1 = mean(lowest_values_of_sample_pop_con_pres),
+        line = list(color = "#000000")
+      ),
+      list(
+        type = "line",
+        x0 = .07,
+        x1 = .09,
+        xref = "paper",
+        y0 = mean(highest_values_of_sample_pop_con_pres),
+        y1 = mean(highest_values_of_sample_pop_con_pres),
+        line = list(color = "#000000")
+      ),
+      #*************************************************************************
+      #*confounder removed
+      list(
+        type = "line",
+        x0 = .4,
+        x1 = .4,
+        xref = "paper",
+        y0 = mean(lowest_values_of_sample_pop_con_rem),
+        y1 = mean(highest_values_of_sample_pop_con_rem),
+        line = list(color = "#000000")
+      ),
+      list(
+        type = "line",
+        x0 = .4,
+        x1 = .42,
+        xref = "paper",
+        y0 = mean(lowest_values_of_sample_pop_con_rem),
+        y1 = mean(lowest_values_of_sample_pop_con_rem),
+        line = list(color = "#000000")
+      ),
+      list(
+        type = "line",
+        x0 = .4,
+        x1 = .42,
+        xref = "paper",
+        y0 = mean(highest_values_of_sample_pop_con_rem),
+        y1 = mean(highest_values_of_sample_pop_con_rem),
+        line = list(color = "#000000")
+      ),
+      #*************************************************************************
+      # #*sentinel animals present
+      # list(
+      #   type = "line",
+      #   x0 = .54,
+      #   x1 = .54,
+      #   xref = "paper",
+      #   y0 = mean(lowest_values_of_sample_pop_sent_ani),
+      #   y1 = mean(highest_values_of_sample_pop_sent_ani),
+      #   line = list(color = "#000000")
+      # ),
+      # list(
+      #   type = "line",
+      #   x0 = .54,
+      #   x1 = .56,
+      #   xref = "paper",
+      #   y0 = mean(lowest_values_of_sample_pop_sent_ani),
+      #   y1 = mean(lowest_values_of_sample_pop_sent_ani),
+      #   line = list(color = "#000000")
+      # ),
+      # list(
+      #   type = "line",
+      #   x0 = .54,
+      #   x1 = .56,
+      #   xref = "paper",
+      #   y0 = mean(highest_values_of_sample_pop_sent_ani),
+      #   y1 = mean(highest_values_of_sample_pop_sent_ani),
+      #   line = list(color = "#000000")
+      # ),
+      #*************************************************************************
+      #*legacy study
+      list(
+        type = "line",
+        x0 = .73,
+        x1 = .73,
+        xref = "paper",
+        y0 = mean(legacy_study_dose_3),
+        y1 = mean(legacy_study_control),
+        line = list(color = "#000000")
+      ),
+      list(
+        type = "line",
+        x0 = .73,
+        x1 = .75,
+        xref = "paper",
+        y0 = mean(legacy_study_dose_3),
+        y1 = mean(legacy_study_dose_3),
+        line = list(color = "#000000")
+      ),
+      list(
+        type = "line",
+        x0 = .73,
+        x1 = .75,
+        xref = "paper",
+        y0 = mean(legacy_study_control),
+        y1 = mean(legacy_study_control),
+        line = list(color = "#000000")
+      )
+  ),
+    xaxis = list(
+      title = "",#"VCG sample population",
+      showline = T,
+      linewidth = 2,
+      ticks = "outside",
+      tickwidth = 2,
+      ticklen = 10,
+      tickangle = 30,
+      mirror = T
+    ),
+    yaxis = list(
+      title = "Ca<sup>2+</sup>-concentration in serum [mmol/L]",
+      showline = T,
+      linewidth = 2,
+      ticks = "outside",
+      tickwidth = 2,
+      ticklen = 10,
+      mirror = T,
+      range = c(2.1, 3.5)
+    )
+  )
+  
+distance_plot
+#*******************************************************************************
+#*******************************************************************************
+#*Export plot-------------------------------------------------------------------
+#*******************************************************************************
+#export the plot as HTML
+htmlwidgets::saveWidget(
+  distance_plot,
+  paste0(path_res, "/HTML/", deparse(substitute(distance_plot)), ".html")
+)
+#export the plot as JPEG
+webshot(
+  paste0(path_res, "/HTML/", deparse(substitute(distance_plot)), ".html"),
+  paste0(path_res, "/JPEG/", deparse(substitute(distance_plot)), ".jpeg"),
+  vwidth = 1920, vheight = 800, zoom = 2
+)
+#export plot as PDF
+webshot(
+  paste0(path_res, "/HTML/", deparse(substitute(distance_plot)), ".html"),
+  paste0(path_res, "/PDF/", deparse(substitute(distance_plot)), ".pdf"),
+  vwidth = 1920, vheight = 800, zoom = 2
+)
 
 ##### program ends here
 save.image(file = paste(rootpath,"\\Programs\\",program,".RData",sep=""))
