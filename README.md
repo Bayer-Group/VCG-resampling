@@ -1,7 +1,7 @@
 # VCG-resampling
 This code visualizes the electrolyte-values of serum control-group animals followed by a resampling experiment.
-As an input, the electrolyte values of the VCG data set are read as CSV and visualized
-A SEND-formatted legacy study needs to be placed into the Data/Derived-subfolder in order to excecute the resampling experiment.
+As an input, the electrolyte values of the Virtual Control Groups (VCG) data set are read as CSV and visualized
+The laboratory parameter values (LB-domain) formatted by SEND (standard for exchange of non-clinical data) of a legacy study need to be placed into the Data/Derived-subfolder in order to excecute the resampling experiment.
 
 ## Dependencies
 In order to run the R-scripts the following R-packages were used:
