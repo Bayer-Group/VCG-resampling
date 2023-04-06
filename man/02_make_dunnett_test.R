@@ -26,7 +26,7 @@ vcg_resampling_dunnett <- function(
   sex = "M",
   iterations = 50,
   narcosis_sample = c("isoflurane", "CO2"),
-  electrolyte = c("CA", "K"), #c("CA", "K", "SODIUM", "PHOS", "CL", "RBC", "BW_D1", "BW_D14", "BW_D28"),
+  electrolyte = c("CA", "K"),
   replacement_aim = "all_but_two"
   )
 {
@@ -256,21 +256,6 @@ vcg_resampling_dunnett <- function(
   #*the mean +- 2*sd is used as a range but this can be adjusted here in future.
   #*If no sentinel animals were selected, all animals from the VCG samples are
   #*selected (i.e. the numerical ranges are the limits)
-  # sentinel_ul <- ifelse(replacement_aim == "all", max(sampling_group$LBORRES), mean(sentinel_animals$LBORRES) + 2 * sd(sentinel_animals$LBORRES))
-  # sentinel_ll <- ifelse(replacement_aim == "all", min(sampling_group$LBORRES), mean(sentinel_animals$LBORRES) - 2 * sd(sentinel_animals$LBORRES))
-  # sentinel_ul <- ifelse(
-  #   replacement_aim == "all",
-  #   sampling_group %>% filter(LBTESTCD == electrolyte) %>% pull(LBORRES) %>% max(),
-  #   sentinel_animals_USUBJIDs %>% pull(LBORRES) %>% mean() +
-  #     sentinel_animals_USUBJIDs %>% pull(LBORRES) %>% sd() * 2
-  #   )
-  # 
-  # sentinel_ll <- ifelse(
-  #   replacement_aim == "all",
-  #   sampling_group %>% filter(LBTESTCD == electrolyte) %>% pull(LBORRES) %>% min(),
-  #   sentinel_animals_USUBJIDs %>% pull(LBORRES) %>% mean() -
-  #     sentinel_animals_USUBJIDs %>% pull(LBORRES) %>% sd() * 2
-  # )
   #get upper limit
   sentinel_ul <- if(replacement_aim == "all"){
     sampling_group %>%
@@ -436,37 +421,6 @@ vcg_resampling_dunnett <- function(
       }
     )
     
-    #***************************************************************************
-    #*get mean, sd, and population of VCGs---------------
-    #***************************************************************************
-    # vcg_means <- lapply(
-    #   studydata_nested_list,
-    #   function(x) {
-    #     do.call(rbind, lapply(x, mean))
-    #   }
-    # )
-    # 
-    # vcg_sd <- lapply(
-    #   studydata_nested_list,
-    #   function(x) {
-    #     do.call(rbind, lapply(x, sd))
-    #   }
-    # )
-    # 
-    # vcg_iteration_population <- lapply(
-    #   studydata_nested_list,
-    #   function(x) {
-    #     do.call(rbind, lapply(x, length))
-    #   }
-    # )
-    
-    # iteration_results <- list(
-    #   vcg_significance#, vcg_means, vcg_sd, vcg_population
-    # )
-    # names(iteration_results) <- c(
-    #   "vcg_significance"#, "vcg_means", "vcg_sd", "vcg_iteration_population"
-    # )
-    
     #store results from each iteration in list
     resampling_dunnett_results[[i]] <- vcg_significance#iteration_results
   }
@@ -498,24 +452,6 @@ vcg_resampling_dunnett <- function(
         )
       )
     )
-  
-  #*****************************************************************************
-  # #*Get individual values of all VCGs from each iteration
-  # vcg_individual_values <- map_df(collected_vcg_samples, as_tibble) %>%
-  #   mutate(
-  #     iteration = paste0(
-  #       rep(
-  #         1:iterations,
-  #         each = n_distinct(electrolyte) * anim_per_group
-  #       )
-  #     )
-  #   )
-  
-  #get a flatten data frame of all the iterations along with the results
-  # vcg_results_list <- lapply(
-  #   resampling_dunnett_results,
-  #   function(x) x[["vcg_significance"]]
-  # )
   
   vcg_results_flatten <- lapply(
     resampling_dunnett_results,
@@ -627,117 +563,6 @@ vcg_resampling_dunnett <- function(
     left_join(consistency_percentage, by = c("LBTESTCD", "dose_group", "consistency_flag")) %>%
     mutate(percentage = replace_na(percentage, 0))
   
-  # consistent_results <- lapply(resampling_dunnett_results, function(x) x[(x[,"vcg_significance"] == "ns" & original_dunnett_results[,"ccg_significance"] == "ns")
-  #                                                                        | (x[,"vcg_significance"] == original_dunnett_results[,"ccg_significance"] & x[,"vcg_direction"] == original_dunnett_results[,"ccg_direction"]),, drop = F])
-  # #Get all inconsistent results
-  # inconsistent_results <- lapply(resampling_dunnett_results, function(x) x[x[,"vcg_significance"] != original_dunnett_results[,"ccg_significance"] | x[,"vcg_direction"] != original_dunnett_results[,"ccg_direction"],, drop = F])
-  # #Get all iterations leading to inconsistently significant results
-  # incon_sig <- lapply(resampling_dunnett_results, function(x) x[x[,"vcg_significance"] == "s" & x[,"vcg_significance"] != original_dunnett_results[,"ccg_significance"],, drop = F])
-  # 
-  # #Get all iterations leading to inconsistently non-significant results
-  # incon_non_sig <- lapply(resampling_dunnett_results, function(x) x[x[,"vcg_significance"] == "ns" & x[,"vcg_significance"] != original_dunnett_results[,"ccg_significance"],, drop = F])
-  # 
-  # #Get the iterations leading to inverse significant results (consistently significant but into the wrong direction)
-  # inv_sig <- lapply(resampling_dunnett_results, function(x) x[x[,"vcg_significance"] == "s" & original_dunnett_results[,"ccg_significance"] == "s" & x[,"vcg_direction"] != original_dunnett_results[,"ccg_direction"],, drop = F])
-  # 
-  # #get the mean values of all iterations with respect to consistency
-  # res_con <- do.call(rbind, lapply(consistent_results, function(x) x[,colnames(x)]))
-  # res_con <- if(length(res_con) != 0) {cbind(res_con, results_type = NA)}
-  # rownames(res_con) <- NULL
-  # if(!is.null(res_con)){
-  #   res_con <- as_tibble(res_con) %>%
-  #     arrange(., dose_group, vcg_mean) %>%
-  #     group_by(dose_group) %>%
-  #     mutate(results_row_id = row_number(),
-  #            results_index = paste0("con", row_number()))
-  # }
-  # 
-  # res_incon <- do.call(rbind, lapply(inconsistent_results, function(x) x[,colnames(x)]))
-  # res_incon <- if(length(res_incon) != 0) {cbind(res_incon, results_type = NA)}
-  # rownames(res_incon) <- NULL
-  # if(!is.null(res_incon)){
-  #   res_incon <- as_tibble(res_incon) %>%
-  #     arrange(., dose_group, vcg_mean) %>%
-  #     group_by(dose_group) %>%
-  #     mutate(results_row_id = row_number(),
-  #            results_index = paste0("incon", row_number()))
-  # }
-  # 
-  # res_incon_sig <- do.call(rbind, lapply(incon_sig, function(x) x[,colnames(x)]))
-  # res_incon_sig <- if(length(res_incon_sig) != 0) {cbind(res_incon_sig, results_type = "incon_sig")}
-  # rownames(res_incon_sig) <- NULL
-  # if(!is.null(res_incon_sig)){
-  #   res_incon_sig <- as_tibble(res_incon_sig) %>%
-  #     arrange(., dose_group, vcg_mean) %>%
-  #     group_by(dose_group) %>%
-  #     mutate(results_row_id = row_number(),
-  #            results_index = paste0("ics", row_number()))
-  # }
-  # 
-  # res_incon_non_sig <- do.call(rbind, lapply(incon_non_sig, function(x) x[,colnames(x)]))
-  # res_incon_non_sig <- if(length(res_incon_non_sig) != 0) {cbind(res_incon_non_sig, results_type = "incon_non_sig")}
-  # rownames(res_incon_non_sig) <- NULL
-  # #enumerate rows with respect to dose group and ordered by mean value (from lowest to highest)
-  # if(!is.null(res_incon_non_sig)){
-  #   res_incon_non_sig <- as_tibble(res_incon_non_sig) %>%
-  #     arrange(., dose_group, vcg_mean) %>%
-  #     group_by(dose_group) %>%
-  #     mutate(results_row_id = row_number(),
-  #            results_index = paste0("ins", row_number()))
-  # }
-  # 
-  # res_inv_sig <- do.call(rbind, lapply(inv_sig, function(x) x[,colnames(x)]))
-  # res_inv_sig <- if(length(res_inv_sig) != 0) {cbind(res_inv_sig, results_type = "inverse_sig")}
-  # rownames(res_inv_sig) <- NULL
-  # #enumerate rows with respect to dose group and ordered by mean value (from lowest to highest)
-  # if(!is.null(res_inv_sig)){
-  #   res_inv_sig <- as_tibble(res_inv_sig) %>%
-  #     arrange(., dose_group, vcg_mean) %>%
-  #     group_by(dose_group) %>%
-  #     mutate(results_row_id = row_number(),
-  #            results_index = paste0("ivs", row_number()))
-  # }
-  # 
-  # #get percentae (if the consistency is not NULL)
-  # consistency_percentage <- if(!is.null(res_con)) {res_con %>% as_tibble() %>% group_by(dose_group) %>% summarize(consistency_percentage = round(n() / iterations * 100))}
-  # #*If there is a complete dose group missing (e.g. Dose group 1 had absolutely
-  # #*no values leading to a consistent result), the row needs to be added
-  # #*manually with a consistency percentage of 0
-  # append_zero_consistencies <- if(!is.null(res_incon)){res_incon %>% filter(!dose_group %in% consistency_percentage$dose_group) %>% group_by(dose_group) %>% summarize(consistency_percentage = 0)}
-  # 
-  # consistency_percentage_with_zeros <- {if(nrow(as_tibble(append_zero_consistencies)) != 0) {
-  #   rbind(consistency_percentage, append_zero_consistencies) %>% arrange(dose_group)}
-  # else {consistency_percentage}}
-  # 
-  # #Add the population of the VCGs. The first iteration is taken for that
-  # n_vcg <- resampling_dunnett_results[[1]][,"vcg_population"]
-  # 
-  # 
-  # #Add the calculated percentage. Add 0 if there was no consistency at all
-  # res_vs_original <- if(!is.null(consistency_percentage_with_zeros)){
-  #   merge(original_dunnett_results %>% as_tibble(), consistency_percentage_with_zeros, by = "dose_group")
-  # } else {
-  #   original_dunnett_results %>% as_tibble() %>% mutate(consistency_percentage = 0)
-  # }
-  # 
-  # #****************************************************************************
-  # #*Calculate the percentage leading to the respective inconsistency. If no
-  # #*iterations led to this specific error, add a 0 instead.
-  # inc_sig_precentage <- if(is.null(res_incon_sig)){res_vs_original %>% select(dose_group) %>% mutate(inc_sig_percentage = 0)}else{res_incon_sig %>% group_by(dose_group) %>% summarize(inc_sig_percentage = round(n() / iterations * 100))}
-  # inc_non_sig_precentage <- if(is.null(res_incon_non_sig)){res_vs_original %>% select(dose_group) %>% mutate(inc_non_sig_percentage = 0)}else{res_incon_non_sig %>% group_by(dose_group) %>% summarize(inc_non_sig_precentage = round(n() / iterations * 100))}
-  # inv_sig_percentage <- if(is.null(res_inv_sig)){res_vs_original %>% select(dose_group) %>% mutate(inv_sig_percentage = 0)}else{res_inv_sig %>% group_by(dose_group) %>% summarize(inv_sig_percentage = round(n() / iterations * 100))}
-  # 
-  # res_vs_original_specified <- res_vs_original %>%
-  #   left_join(inc_sig_precentage, by = "dose_group") %>%
-  #   left_join(inc_non_sig_precentage, by = "dose_group") %>%
-  #   left_join(inv_sig_percentage, by = "dose_group") %>%
-  #   mutate(across(ends_with("percentage"), replace_na, 0)) %>%
-  #   #add the population of the VCGs
-  #   mutate(vcg_population = n_vcg)
-
-
-  # res_list <- list(iteration_means, resampling_dunnett_results, res_con, res_incon_sig, res_incon_non_sig, res_inv_sig, res_vs_original_specified, sampling_group %>% filter(LBTESTCD == electrolyte), sentinel_animals, ccgs_to_be_removed)
-  # names(res_list) <- c("all_VCGs", "res_all", "res_con", "res_incon_sig", "res_incon_non_sig", "res_inv_sig", "res_vs_original", "sampling_group", "sentinel_animals", "ccgs_to_be_removed")
   #*****************************************************************************
   #*****************************************************************************
   #*Collect all results into a list which is returned in this function----------

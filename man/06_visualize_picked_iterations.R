@@ -1,5 +1,19 @@
-#*Add program description
-##### program starts here
+#*This script visualizes the location parameters of selected VCGs created
+#*by the "02_make_dunnett_test.R" script.
+#*
+#*The first plot visualizes the location parameters of the control and the
+#*dose groups and marks them according to whether the statistical test led
+#*to a significant result or not.
+#*
+#*As a second plot, closely related to the fist one, the data is selected
+#*containing the results of the resampling
+#*experiments. You can choose which iteration you want to observe with respect
+#*to which result was achieved. E.g., if you want to see the highest VCG
+#*value of all iterations leading to a consistent result in 
+#*Dose group 2, you can set "of_dose" to "Dose group 2", "which_VCG" to "highest"
+#*and "res_leading_to" to "con".
+#*
+
 #*********************************************************************************;
 #*********************************************************************************;
 #*********************************************************************************;
@@ -115,15 +129,6 @@ resampling_plot <- function(
     mutate(ccg_significance = factor(ccg_significance, levels = c("concurrent control", "not significant", "significant"))) %>%
     unique()
 
-  
-  # #extract vector of IDs of the results type of interest with respect to dose group
-  # VCG_res_id <- plot_data[["res_all"]] %>%
-  #   filter(
-  #     consistency_flag == res_leading_to,
-  #     dose_group == of_dose,
-  #     LBTESTCD == electrolyte
-  #     )
-
 
   #*select the hightest, lowest or middle VCG (rounded to higher integer) leading
   #*to the selected result in the selected dose group
@@ -182,9 +187,6 @@ resampling_plot <- function(
         )
       )
 
-  # original_data$colorcode <- selected_vcg$colorcode
-  # original_data$significance <- selected_vcg$significance
-  #
   #Get VCG mean and SD from these selected values
   vcg_mean <- selected_vcg %>% filter(dose_group == "Dose group 1") %>% pull(vcg_mean)
   vcg_sd <- selected_vcg %>% filter(dose_group == "Dose group 1") %>% pull(vcg_sd)
@@ -372,16 +374,6 @@ resampling_plot <- function(
         mirror = T
       ),
       xaxis = list(
-        #Add non breakable lines so that the title is aligned with the
-        #title from the legacy study
-        # title = paste0(c(
-        #   rep("\n&nbsp;", 5),
-        #   rep("&nbsp;", 10),
-        #   "VCG sample population",
-        #   rep("&nbsp;", 10)
-        #   ),
-        #   collapse = ""
-        # ),
         showline = T,
         linewidth = 2,
         ticks = "outside",
@@ -543,16 +535,3 @@ resampling_plot <- function(
   
   ifelse(whichplot == "original", return(ccg_and_vcg_sample), return(vcg_res_plot))
 }
-#*********************************************************************************;
-#*********************************************************************************;
-#*********************************************************************************;
-##### program ends here
-
-# save.image(file = paste(rootpath,"\\Programs\\",program,".RData",sep=""))
-# 
-# 
-# #*
-# #* DO NOT EDIT BELOW THESE LINES
-# #*
-# savehistory(file = paste(rootpath,"\\Programs\\",program,".Rhistory",sep=""))
-# sessionInfo()

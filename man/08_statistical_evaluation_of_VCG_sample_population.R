@@ -376,39 +376,6 @@ distance_plot <- plot_ly() %>%
     showlegend = F
   ) %>%
   #*****************************************************************************
-  # #Sentinel animals as an additional filter
-  # add_boxplot(
-  #   x = "filtered to match sentinel animals",
-  #   y = highest_values_of_sample_pop_sent_ani,
-  #   marker = list(
-  #     color = "#000000",
-  #     symbol = "cross",
-  #     size = 10
-  #     ),
-  #   boxpoints = "all",
-  #   jitter = 1,
-  #   pointpos = 0,
-  #   name = "VCG sample population",
-  #   fillcolor = "rgba(255,255,255,0)",
-  #   line = list(color = "rgba(255,255,255,0)"),
-  #   showlegend = F
-  # ) %>%
-  # add_boxplot(
-  #   x = "filtered to match sentinel animals",
-  #   y = lowest_values_of_sample_pop_sent_ani,
-  #   marker = list(
-  #     color = "#ffffff",
-  #     line = list(color = "#000000", width = 2),
-  #     size = 10
-  #     ),
-  #   boxpoints = "all",
-  #   jitter = 1,
-  #   pointpos = 0,
-  #   name = "VCG sample population",
-  #   fillcolor = "rgba(255,255,255,0)",
-  #   line = list(color = "rgba(255,255,255,0)"),
-  #   showlegend = F
-  # ) %>%
   #*****************************************************************************
   #Legacy study
   add_boxplot(
@@ -487,25 +454,6 @@ distance_plot <- plot_ly() %>%
     showarrow = FALSE
   ) %>%
   #*****************************************************************************
-  # #*sentinel animals as an additional filter
-  # add_annotations(
-  #   text = ~paste0(
-  #     # (signif(mean(highest_values_of_sample_pop_con_rem) - mean(lowest_values_of_sample_pop_con_rem), 3)),
-  #     "95 % CI [",
-  #     signif(t_test_sample_pop_sent_ani[["conf.int"]][1], 3),
-  #     "; ",
-  #     signif(t_test_sample_pop_sent_ani[["conf.int"]][2], 3),
-  #     "]"
-  #   ),
-  #   size = 8,
-  #   x = 0.51,
-  #   xanchor = "top",
-  #   xref = "paper",
-  #   y = mean(lowest_values_of_sample_pop_sent_ani) + (mean(highest_values_of_sample_pop_sent_ani) - mean(lowest_values_of_sample_pop_sent_ani)) / 2,
-  #   yanchor = "center",
-  #   textangle = 270,
-  #   showarrow = FALSE
-  # ) %>%
   #*****************************************************************************
   #*legacy study
   add_annotations(
@@ -589,34 +537,6 @@ distance_plot <- plot_ly() %>%
         line = list(color = "#000000")
       ),
       #*************************************************************************
-      # #*sentinel animals present
-      # list(
-      #   type = "line",
-      #   x0 = .54,
-      #   x1 = .54,
-      #   xref = "paper",
-      #   y0 = mean(lowest_values_of_sample_pop_sent_ani),
-      #   y1 = mean(highest_values_of_sample_pop_sent_ani),
-      #   line = list(color = "#000000")
-      # ),
-      # list(
-      #   type = "line",
-      #   x0 = .54,
-      #   x1 = .56,
-      #   xref = "paper",
-      #   y0 = mean(lowest_values_of_sample_pop_sent_ani),
-      #   y1 = mean(lowest_values_of_sample_pop_sent_ani),
-      #   line = list(color = "#000000")
-      # ),
-      # list(
-      #   type = "line",
-      #   x0 = .54,
-      #   x1 = .56,
-      #   xref = "paper",
-      #   y0 = mean(highest_values_of_sample_pop_sent_ani),
-      #   y1 = mean(highest_values_of_sample_pop_sent_ani),
-      #   line = list(color = "#000000")
-      # ),
       #*************************************************************************
       #*legacy study
       list(

@@ -334,7 +334,7 @@ resampling_result_baycal_plot <- function(
 
   #*Make a function to toggle the "result boxes" off if there are no results
   #*leading to a respective error (e.g., if there are no VCG values leading to
-  #*a type III error, there "box" will hide under the CCG mean value (this 
+  #*an inconsistent result, there "box" will hide under the CCG mean value (this 
   #*workaround is necessary as "NULL" values lead to appearance of random boxes
   #*in the plot))
   consistencybox <- function(restype, minval, maxval, boxcolor){

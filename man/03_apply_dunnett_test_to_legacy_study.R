@@ -79,75 +79,6 @@ baycal_ca_levels <- baycal_with_initbw %>%
          trial_set_description = factor(trial_set_description, levels = c("Control", "Dose group 1", "Dose group 2", "Dose group 3")))
 
 #******************************************************************************
-#*Assess resampling performance for an equal number from both subsets in males
-#  baycal1_both_m_all <- vcg_resampling_dunnett(
-#    case_study = baycal_ca_levels,
-#    vcg_population = sample_population,
-#    sex = "M",
-#    iterations = 500,
-#    narcosis_sample = c("isoflurane" ,"CO2"),
-#    electrolyte = c("CA", "K"),
-#    replacement_aim = "all"
-#    )
-#  baycal1_both_m_all[["res_vs_original"]] %>% filter(LBTESTCD == "CA", consistency_flag  == "con")
-# # # baycal1_both_m_all[["res_vs_original"]]
-# # 
-# baycal1_both_m_all_but_two <- vcg_resampling_dunnett(
-#   case_study = baycal_ca_levels,
-#   vcg_population = sample_population,
-#   sex = "M",
-#   iterations = 500,
-#   narcosis_sample = c("isoflurane" ,"CO2"),
-#   electrolyte = c("CA", "K"),
-#   replacement_aim = "all_but_two"
-# )
-# baycal1_both_m_all_but_two[["res_vs_original"]] %>% filter(LBTESTCD == "CA", consistency_flag  == "con")
-# 
-# baycal1_both_m_half <- vcg_resampling_dunnett(
-#   case_study = baycal_ca_levels,
-#   vcg_population = sample_population,
-#   sex = "M",
-#   iterations = 500,
-#   narcosis_sample = c("isoflurane" ,"CO2"),
-#   electrolyte = "CA",
-#   replacement_aim = "half"
-# )
-# baycal1_both_m_half[["res_vs_original"]]
-# #******************************************************************************
-# #*Assess resampling performance for isoflurane subset in males
-# baycal1_iso_m_all <- vcg_resampling_dunnett(
-#   case_study = baycal_ca_levels,
-#   vcg_population = sample_population,
-#   sex = "M",
-#   iterations = 500,
-#   narcosis_sample = "isoflurane",
-#   electrolyte = "CA",
-#   replacement_aim = "all"
-# )
-# baycal1_iso_m_all[["res_vs_original"]]
-# 
-# baycal1_iso_m_all_but_two <- vcg_resampling_dunnett(
-#   case_study = baycal_ca_levels,
-#   vcg_population = sample_population,
-#   sex = "M",
-#   iterations = 500,
-#   narcosis_sample = "isoflurane",
-#   electrolyte = "CA",
-#   replacement_aim = "all_but_two"
-# )
-# baycal1_iso_m_all_but_two[["res_vs_original"]]
-# 
-# baycal1_iso_m_half <- vcg_resampling_dunnett(
-#   case_study = baycal_ca_levels,
-#   vcg_population = sample_population,
-#   sex = "M",
-#   iterations = 500,
-#   narcosis_sample = "isoflurane",
-#   electrolyte = "CA",
-#   replacement_aim = "half"
-# )
-# # baycal1_iso_m_half[["res_vs_original"]]
-# baycal1_iso_m_half
 #*******************************************************************************
 #*******************************************************************************
 #*******************************************************************************
@@ -297,6 +228,7 @@ sample_population %>% filter(LBTESTCD == "BW_D28", SEX == "M", ANESTHETICS == "i
 #*******************************************************************************
 #*Write results as CSV and store in Data/Derived folder-------------------------
 #*******************************************************************************
+#*uncomment, if needed
 # fwrite(bay_both_m_all, paste0(der, "/bay_both_m_all.csv"))
 # fwrite(bay_both_m_all_but_two, paste0(der, "/bay_both_m_all_but_two.csv"))
 # fwrite(bay_both_m_half, paste0(der, "/bay_both_m_half.csv"))
