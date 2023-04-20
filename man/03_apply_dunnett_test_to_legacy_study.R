@@ -16,7 +16,7 @@
 require(data.table)
 require(tidyverse)
 #Get the function which calculates Dunnett-test for each resampled value
-source(paste0(rootpath, "/Programs/02_make_dunnett_test.R"))
+source(paste0(rootpath, "/man/02_make_dunnett_test.R"))
 
 #read electrolyte values from VCG table from data/Derived folder
 studydata_to_test <- fread(paste0(der, "/all_lb_parameters_4wk_rat.csv")) %>%
