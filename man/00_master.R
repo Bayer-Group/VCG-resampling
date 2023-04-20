@@ -44,7 +44,7 @@ program <- "00_master.R"
 #*********************************************************************************;
 #*********************************************************************************;
 # retrieve the current study path
-rootpath <- sub("*\\/Programs", "",dirname(rstudioapi::getSourceEditorContext()$path))
+rootpath <- sub("*\\/man", "",dirname(rstudioapi::getSourceEditorContext()$path))
 
 # path to folder for results / graphs / derived data sets
 path_res <- paste(rootpath,'/Results', sep='')
