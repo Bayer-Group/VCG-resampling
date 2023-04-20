@@ -79,27 +79,27 @@ library(plotly)
 library(webshot)
 #*******************************************************************************
 #Create a function doing a resampling approach and calculating the Dunnett's test
-source(paste0(rootpath, "/Programs/02_make_dunnett_test.R"))
+source(paste0(rootpath, "/man/02_make_dunnett_test.R"))
 #Source the script in order to obtain the resampling_results
-source(paste0(rootpath, "/Programs/03_apply_dunnett_test_to_legacy_study.R"))
+source(paste0(rootpath, "/man/03_apply_dunnett_test_to_legacy_study.R"))
 #*******************************************************************************
 #Source the visualization scripts:
 #The plots will be stored in the "Results"-folder as HTML files and as JPEGs
 #Get the visualizations of the electrolytes
-source(paste0(rootpath, "/Programs/04_visualize_electrolytes.R"))
+source(paste0(rootpath, "/man/04_visualize_electrolytes.R"))
 #Get the function which visualizes the scenarios
-source(paste0(rootpath, "/Programs/05_visualize_scenarios.R"))
+source(paste0(rootpath, "/man/05_visualize_scenarios.R"))
 #Get the function which visualizes results from certain selected iterations
-source(paste0(rootpath, "/Programs/06_visualize_picked_iterations.R"))
+source(paste0(rootpath, "/man/06_visualize_picked_iterations.R"))
 #Get the function which visualizes the results of the previous script
-source(paste0(rootpath, "/Programs/07_visualize_resampling_results.R"))
+source(paste0(rootpath, "/man/07_visualize_resampling_results.R"))
 #Visualize all results using the visualization master script
-source(paste0(rootpath, "/Programs/01_visualization_master.R"))
+source(paste0(rootpath, "/man/01_visualization_master.R"))
 #*******************************************************************************
 ##### program ends here
-save.image(file = paste(rootpath,"\\Programs\\",program,".RData",sep=""))
+save.image(file = paste(rootpath,"\\man\\",program,".RData",sep=""))
 #* 
 #* DO NOT EDIT BELOW THESE LINES
 #*
-savehistory(file = paste(rootpath,"\\Programs\\",program,".Rhistory",sep=""))
+savehistory(file = paste(rootpath,"\\man\\",program,".Rhistory",sep=""))
 sessionInfo()
