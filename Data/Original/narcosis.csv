@@ -1,33 +1,33 @@
-﻿study_id;start_year;anesthetics;NA_reason
-T100046-1;2012;CO2/air;NA
-T100495-9;2013;CO2/air;NA
-T100512-9;2013;CO2/air;NA
-T100541-1;2013;CO2/air;NA
-T100555-6;2013;CO2/air;NA
-T101174-4;2014;CO2/air;not found in the components
-T101220-6;2014;CO2/air;NA
-T101352-2;2014;CO2/air;NA
-T101546-7;2014;CO2/air;NA
-T101700-9;2015;CO2/O2;NA
-T101767-2;2014;CO2/air;NA
-T102046-3;2015;CO2/air;NA
-T102218-4;2016;CO2/air;NA
-T102609-8;2016;CO2/O2;not found in the components
-T102782-0;2016;CO2/O2;NA
-T103112-8;2017;isoflurane;NA
-T103141-0;2017;isoflurane;NA
-T103165-6;2017;isoflurane;not found in the components
-T103236-5;2017;isoflurane;NA
-T103239-8;2017;isoflurane;NA
-T103241-1;2017;isoflurane;no data available
-T103430-1;2017;isoflurane;no data available
-T103529-0;2017;isoflurane;NA
-T103815-8;2018;isoflurane;NA
-T103901-4;2018;isoflurane;NA
-T103925-0;2018;isoflurane;NA
-T104039-7;2018;isoflurane;NA
-T104151-2;2018;isoflurane;not found in the components
-T104404-3;2019;isoflurane;not found in the components
-T105000-6;2020;isoflurane;NA
-T105017-4;2020;isoflurane;not found in the components
-T105216-5;2021;isoflurane;NA
+"","SPREFID","start_year","anesthetics","NA_reason"
+"1","Study-01",2012,"CO2/air",NA
+"2","Study-02",2013,"CO2/air",NA
+"3","Study-03",2013,"CO2/air",NA
+"4","Study-04",2013,"CO2/air",NA
+"5","Study-05",2013,"CO2/air",NA
+"6","Study-06",2014,"CO2/air","not found in the components"
+"7","Study-07",2014,"CO2/air",NA
+"8","Study-08",2014,"CO2/air",NA
+"9","Study-09",2014,"CO2/air",NA
+"10","Study-11",2015,"CO2/O2",NA
+"11","Study-10",2014,"CO2/air",NA
+"12","Study-12",2015,"CO2/air",NA
+"13","Study-13",2016,"CO2/air",NA
+"14","Study-14",2016,"CO2/O2","not found in the components"
+"15","Study-31",2016,"CO2/O2",NA
+"16","Study-15",2017,"isoflurane",NA
+"17","Study-16",2017,"isoflurane",NA
+"18","Study-17",2017,"isoflurane","not found in the components"
+"19","Study-18",2017,"isoflurane",NA
+"20","Study-19",2017,"isoflurane",NA
+"21","Study-20",2017,"isoflurane","no data available"
+"22","Study-21",2017,"isoflurane","no data available"
+"23","Study-22",2017,"isoflurane",NA
+"24","Study-23",2018,"isoflurane",NA
+"25","Study-24",2018,"isoflurane",NA
+"26","Study-25",2018,"isoflurane",NA
+"27","Study-26",2018,"isoflurane",NA
+"28","Study-27",2018,"isoflurane","not found in the components"
+"29","Study-28",2019,"isoflurane","not found in the components"
+"30","Study-29",2020,"isoflurane",NA
+"31","Study-30",2020,"isoflurane","not found in the components"
+"32","Study-32",2021,"isoflurane",NA
